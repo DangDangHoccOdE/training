@@ -7,16 +7,23 @@ import com.luvina.training_final.Spring.boot.project.dto.AccountDto;
 import com.luvina.training_final.Spring.boot.project.dto.RegistrationDto;
 import com.luvina.training_final.Spring.boot.project.dto.UserEntityDto;
 import com.luvina.training_final.Spring.boot.project.entity.Account;
+import com.luvina.training_final.Spring.boot.project.entity.Notice;
 import com.luvina.training_final.Spring.boot.project.entity.Role;
 import com.luvina.training_final.Spring.boot.project.entity.UserEntity;
 import com.luvina.training_final.Spring.boot.project.exception.BadRequestException;
 import com.luvina.training_final.Spring.boot.project.service.inter.IEmailService;
 import com.luvina.training_final.Spring.boot.project.service.inter.IUserEntityService;
 import com.luvina.training_final.Spring.boot.project.utils.ConvertStringToDate;
+import com.luvina.training_final.Spring.boot.project.utils.OtpGenerator;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,8 +42,11 @@ public class UserEntityService implements IUserEntityService {
    BCryptPasswordEncoder bCryptPasswordEncoder;
    RoleRepository roleRepository;
    IEmailService iEmailService;
+   AuthenticationManager authenticationManager;
+   JwtService jwtService;
 
     @Override
+    @Transactional
     public ResponseEntity<?> registerUser(RegistrationDto registrationDto){
         Optional<Account> account = accountRepository.findAccountByEmail(registrationDto.getAccount().getEmail());
         if(account.isPresent()){
@@ -78,7 +88,7 @@ public class UserEntityService implements IUserEntityService {
         accountRepository.save(accountSave);
         userEntityRepository.save(user);
 
-        sendEmailActive(accountDto.getEmail());
+        sendEmailActive(accountDto.getEmail()); // send email active account
         return ResponseEntity.ok().build();
     }
 
@@ -92,6 +102,7 @@ public class UserEntityService implements IUserEntityService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> activeAccount(String email){
         Account account = accountRepository.findAccountByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
@@ -103,5 +114,45 @@ public class UserEntityService implements IUserEntityService {
         accountRepository.save(account);
 
         return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> login(AccountDto accountDto){
+          try{
+              Authentication authentication = authenticationManager.authenticate(
+                      new UsernamePasswordAuthenticationToken(accountDto.getEmail(),accountDto.getPassword()));
+
+              Account account = accountRepository.findAccountByEmail(accountDto.getEmail())
+                      .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
+
+              if(!account.isActive()){
+                  throw new BadRequestException("Account has not been activated");
+              }
+              if(authentication.isAuthenticated()){
+                  String otp = OtpGenerator.generateOtp(6); // 6 char
+
+                  account.setOtp(otp);
+                  accountRepository.save(account);
+                  return ResponseEntity.ok(new Notice("OTP: "+otp));
+              }
+          }catch (AuthenticationException e){
+              return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
+          }
+        return ResponseEntity.badRequest().body(new Notice("Authentication failed!"));
+    }
+
+    public ResponseEntity<?> validOtp(String otp,AccountDto accountDto){
+        Account account = accountRepository.findAccountByEmail(accountDto.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
+
+        if(!account.isActive()){
+            throw new BadRequestException("Account has not been activated");
+        }
+
+        if(account.getOtp().equals(otp)){
+            String token  = jwtService.generateToken(account.getEmail());
+            return ResponseEntity.ok(new Notice("Token: "+token));
+        }
+
+        return ResponseEntity.badRequest().body(new Notice("Otp is not correct!"));
     }
 }

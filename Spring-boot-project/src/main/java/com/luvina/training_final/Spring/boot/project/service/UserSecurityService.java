@@ -34,7 +34,6 @@ public class UserSecurityService implements IUserSecurityService {
         Account account = findByEmail(email);
 
         UserEntity userEntity = account.getUserEntity();
-
         return new User(account.getEmail(),account.getPassword(),userAuthority(userEntity.getRoles()));
     }
 
