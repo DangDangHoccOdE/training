@@ -2,6 +2,7 @@ package com.luvina.training_final.Spring.boot.project.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "user_entity")
 public class UserEntity {
     @Id
@@ -36,6 +38,9 @@ public class UserEntity {
     @Column(name = "facebookLink",nullable = false,unique = true)
     private String facebookLink;
 
+    @Column(name = "gender",nullable = false)
+    private String gender;
+
     @Lob
     @Column(name = "avatar",columnDefinition = "TEXT")
     private String avatar;
@@ -43,9 +48,10 @@ public class UserEntity {
     @ManyToMany(cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST},mappedBy = "userDetails")
     private List<Role> roles;
 
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "userDetails")
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "userEntity")
     private List<Comment> comments;
 
-    @OneToOne(cascade = CascadeType.ALL,mappedBy = "account_id")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "account_id")
     private Account account;
 }
