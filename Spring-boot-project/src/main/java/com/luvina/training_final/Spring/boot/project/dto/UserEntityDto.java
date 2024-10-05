@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,9 +32,6 @@ public class UserEntityDto {
 
     @Size(max = 100, message = "Job must not exceed 100 characters")
     private String job;
-
-    @URL(message = "Facebook link must be a valid URL")
-    private String facebookLink;
 
     @URL(message = "Avatar must be a valid URL")
     private String avatar;

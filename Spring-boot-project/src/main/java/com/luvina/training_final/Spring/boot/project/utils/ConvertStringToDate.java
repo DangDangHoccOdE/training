@@ -1,13 +1,12 @@
 package com.luvina.training_final.Spring.boot.project.utils;
 
 import java.sql.Date;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class ConvertStringToDate {
     public static Date convert(String date) throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        java.util.Date dateUtil = null;
+        java.util.Date dateUtil ;
         dateUtil = sdf.parse(date);
 
         if (!dateUtil.before(new java.util.Date())) {

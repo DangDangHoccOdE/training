@@ -25,16 +25,13 @@ public class UserSecurityService implements IUserSecurityService {
 
     @Override
     public Account findByEmail(String email) {
-        return accountRepository.findAccountsByEmail(email);
+        return accountRepository.findAccountByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = accountRepository.findAccountsByEmail(username);
-
-        if (account == null) {
-            throw new UsernameNotFoundException("Email not found");
-        }
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Account account = findByEmail(email);
 
         UserEntity userEntity = account.getUserEntity();
 

@@ -23,6 +23,6 @@ public class Comment {
     private String image;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-    @JoinColumn(name = "user_details_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
 }

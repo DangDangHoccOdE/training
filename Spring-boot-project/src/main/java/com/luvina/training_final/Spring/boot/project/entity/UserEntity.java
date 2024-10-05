@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "user_entity")
+@Table(name = "user")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +34,6 @@ public class UserEntity {
 
     @Column(name = "job")
     private String job;
-
-    @Column(name = "facebookLink",nullable = false,unique = true)
-    private String facebookLink;
 
     @Column(name = "gender",nullable = false)
     private String gender;

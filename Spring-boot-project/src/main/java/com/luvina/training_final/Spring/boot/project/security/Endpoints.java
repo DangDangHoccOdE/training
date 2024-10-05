@@ -8,4 +8,8 @@ public class Endpoints {
     public static final String[] USER_POST_ENDPOINT={
             "/user/login"
     };
+
+    public static final String[] USER_PUT_ENDPOINTS={
+            "/user/active_account/*"
+    };
 }
