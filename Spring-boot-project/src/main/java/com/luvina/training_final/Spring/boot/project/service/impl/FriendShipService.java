@@ -31,12 +31,17 @@ public class FriendShipService implements IFriendShipService {
         User receiver = userRepository.findUserById(receiverId)
                 .orElseThrow(()-> new NotFoundException("User not found"));
 
-        Optional<FriendShip> existingFriendship = friendShipRepository.findByUser1AndUser2(sender,receiver);
+        Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender,receiver);
+        Optional<FriendShip> existingFriendship2 = friendShipRepository.findByUser1AndUser2(receiver,sender);
+        if(existingFriendship2.isPresent()){
+            throw new BadRequestException("Send duplicate invitations!");
+        } // check xem có bị 2 người gửi kết bạn cho nhau k
+
         FriendShip friendship = new FriendShip();
 
-        if (existingFriendship.isPresent()) {
+        if (existingFriendship1.isPresent()) {
             // Nếu đã từ chối trước đó, cập nhật lại thành pending
-            friendship = existingFriendship.get();
+            friendship = existingFriendship1.get();
             friendship.setUpdateAt(LocalDateTime.now());
             if (!"declined".equals(friendship.getStatus())) {
                 throw new BadRequestException("Friendship request already exists with status: " + friendship.getStatus());
