@@ -2,7 +2,7 @@ package com.luvina.training_final.Spring.boot.project.service.impl;
 
 import com.luvina.training_final.Spring.boot.project.entity.Account;
 import com.luvina.training_final.Spring.boot.project.entity.Role;
-import com.luvina.training_final.Spring.boot.project.entity.UserEntity;
+import com.luvina.training_final.Spring.boot.project.entity.User;
 import com.luvina.training_final.Spring.boot.project.service.IUserSecurityService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -36,15 +36,15 @@ public class JwtService {
     public String generateToken(String email){
         Map<String, Object> claim = new HashMap<>();
         Account account = iUserSecurityService.findByEmail(email);
-        UserEntity userEntity = account.getUserEntity();
+        User user = account.getUser();
 
         claim.put("isActive",account.isActive());
-        claim.put("userId",userEntity.getId());
+        claim.put("userId", user.getId());
 
         boolean isAdmin = false;
         boolean isUser = false;
 
-        List<Role> list = userEntity.getRoles();
+        List<Role> list = user.getRoles();
         if(!list.isEmpty()){
             for(Role role : list){
                 if(role.getRoleName().equals("ROLE_ADMIN")){

@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,10 +22,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+    private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final UserSecurityService userSecurityService;
     @Autowired
-    public SecurityConfiguration(CustomAccessDeniedHandler customAccessDeniedHandler, UserSecurityService userSecurityService) {
+    public SecurityConfiguration(CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint, CustomAccessDeniedHandler customAccessDeniedHandler, UserSecurityService userSecurityService) {
+        this.customBasicAuthenticationEntryPoint = customBasicAuthenticationEntryPoint;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
         this.userSecurityService = userSecurityService;
     }
@@ -46,12 +49,15 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(
                 configurer -> configurer
                         .requestMatchers(HttpMethod.POST,Endpoints.PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PUT,Endpoints.PUBLIC_PUT_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.PUT,Endpoints.USER_PUT_ENDPOINTS).hasAnyRole("USER","ADMIN")
                         .requestMatchers(HttpMethod.POST,Endpoints.USER_POST_ENDPOINT).hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,Endpoints.USER_DELETE_ENDPOINTS).hasAnyRole("USER","ADMIN")
         )
                 .exceptionHandling(e->e.accessDeniedHandler(customAccessDeniedHandler))
                 .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(Customizer.withDefaults());
+                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(httpBasic->httpBasic.authenticationEntryPoint(customBasicAuthenticationEntryPoint));
 
         return http.build();
 

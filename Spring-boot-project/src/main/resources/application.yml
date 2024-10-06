@@ -21,3 +21,8 @@ spring:
                     starttls:
                         enable: true
         username: danghoangtest1@gmail.com
+
+    data:
+        redis:
+            host: localhost
+            port: 6379

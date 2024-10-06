@@ -5,33 +5,32 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comment")
+@Table(name = "likes")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Comment {
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "like_id")
     private Long id;
 
-    @Column(name = "content")
-    private String content;
-
-    @Lob
-    @Column(name = "image",columnDefinition = "TEXT")
-    private String image;
+    @Column(name = "created_at")
+    private LocalDateTime localDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     private Post post;
 
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "comment")
-    private List<Like> likes;
+    @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
+
+    @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

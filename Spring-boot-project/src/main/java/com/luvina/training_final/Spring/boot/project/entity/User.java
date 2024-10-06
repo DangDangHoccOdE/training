@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Table(name = "user")
-public class UserEntity {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -48,10 +47,22 @@ public class UserEntity {
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "userId"),inverseJoinColumns = @JoinColumn(name = "roleId"))
     private List<Role> roles;
 
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "userEntity")
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
     private List<Comment> comments;
+
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+    private List<Post> posts;
+
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+    private List<Like> likes;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @OneToMany(mappedBy = "user1",cascade = CascadeType.ALL)
+    private List<FriendShip> friendShipsSent;
+
+    @OneToMany(mappedBy = "user2",cascade = CascadeType.ALL)
+    private List<FriendShip> friendShipsReceived;
 }

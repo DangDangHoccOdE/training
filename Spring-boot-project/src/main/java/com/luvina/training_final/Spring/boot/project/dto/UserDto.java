@@ -9,7 +9,7 @@ import org.hibernate.validator.constraints.URL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntityDto {
+public class UserDto {
     private long id;
 
     @NotBlank(message = "First name is required")

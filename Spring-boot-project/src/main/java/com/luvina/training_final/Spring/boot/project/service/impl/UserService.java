@@ -2,23 +2,22 @@ package com.luvina.training_final.Spring.boot.project.service.impl;
 
 import com.luvina.training_final.Spring.boot.project.dao.AccountRepository;
 import com.luvina.training_final.Spring.boot.project.dao.RoleRepository;
-import com.luvina.training_final.Spring.boot.project.dao.UserEntityRepository;
+import com.luvina.training_final.Spring.boot.project.dao.UserRepository;
 import com.luvina.training_final.Spring.boot.project.dto.AccountDto;
 import com.luvina.training_final.Spring.boot.project.dto.RegistrationDto;
-import com.luvina.training_final.Spring.boot.project.dto.UserEntityDto;
-import com.luvina.training_final.Spring.boot.project.entity.Account;
-import com.luvina.training_final.Spring.boot.project.entity.Notice;
-import com.luvina.training_final.Spring.boot.project.entity.Role;
-import com.luvina.training_final.Spring.boot.project.entity.UserEntity;
+import com.luvina.training_final.Spring.boot.project.dto.UserDto;
+import com.luvina.training_final.Spring.boot.project.entity.*;
 import com.luvina.training_final.Spring.boot.project.exception.BadRequestException;
+import com.luvina.training_final.Spring.boot.project.exception.NotFoundException;
 import com.luvina.training_final.Spring.boot.project.service.inter.IEmailService;
-import com.luvina.training_final.Spring.boot.project.service.inter.IUserEntityService;
+import com.luvina.training_final.Spring.boot.project.service.inter.IUserService;
 import com.luvina.training_final.Spring.boot.project.utils.ConvertStringToDate;
 import com.luvina.training_final.Spring.boot.project.utils.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,18 +31,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-public class UserEntityService implements IUserEntityService {
-   UserEntityRepository userEntityRepository;
+public class UserService implements IUserService {
+   UserRepository userRepository;
    AccountRepository accountRepository;
    BCryptPasswordEncoder bCryptPasswordEncoder;
    RoleRepository roleRepository;
    IEmailService iEmailService;
    AuthenticationManager authenticationManager;
    JwtService jwtService;
+   StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -54,7 +55,7 @@ public class UserEntityService implements IUserEntityService {
         }
 
         AccountDto accountDto = registrationDto.getAccount();
-        UserEntityDto userEntityDto = registrationDto.getUser();
+        UserDto userDto = registrationDto.getUser();
 
         Account accountSave = Account.builder()
                 .email(accountDto.getEmail())
@@ -71,14 +72,14 @@ public class UserEntityService implements IUserEntityService {
         }
         List<Role> role = new ArrayList<>(Collections.singletonList(roleFind));
 
-        UserEntity user ;
+        User user ;
         try {
-            user = UserEntity.builder()
-                    .firstName(userEntityDto.getFirstName())
-                    .lastName(userEntityDto.getLastName())
-                    .gender(userEntityDto.getGender())
+            user = User.builder()
+                    .firstName(userDto.getFirstName())
+                    .lastName(userDto.getLastName())
+                    .gender(userDto.getGender())
                     .roles(role)
-                    .dateOfBirth(ConvertStringToDate.convert(userEntityDto.getDateOfBirth()))
+                    .dateOfBirth(ConvertStringToDate.convert(userDto.getDateOfBirth()))
                     .account(accountSave)
                     .build();
         } catch (Exception e) {
@@ -86,7 +87,7 @@ public class UserEntityService implements IUserEntityService {
         }
 
         accountRepository.save(accountSave);
-        userEntityRepository.save(user);
+        userRepository.save(user);
 
         sendEmailActive(accountDto.getEmail()); // send email active account
         return ResponseEntity.ok().build();
@@ -124,9 +125,6 @@ public class UserEntityService implements IUserEntityService {
               Account account = accountRepository.findAccountByEmail(accountDto.getEmail())
                       .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
 
-              if(!account.isActive()){
-                  throw new BadRequestException("Account has not been activated");
-              }
               if(authentication.isAuthenticated()){
                   String otp = OtpGenerator.generateOtp(6); // 6 char
 
@@ -135,9 +133,10 @@ public class UserEntityService implements IUserEntityService {
                   return ResponseEntity.ok(new Notice("OTP: "+otp));
               }
           }catch (AuthenticationException e){
-              return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
+              System.out.println(e.getMessage());
+              throw e;
           }
-        return ResponseEntity.badRequest().body(new Notice("Authentication failed!"));
+        return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
 
     public ResponseEntity<?> validOtp(String otp,AccountDto accountDto){
@@ -154,5 +153,61 @@ public class UserEntityService implements IUserEntityService {
         }
 
         return ResponseEntity.badRequest().body(new Notice("Otp is not correct!"));
+    }
+
+    @Override
+    public ResponseEntity<?> updateProfile(long id,UserDto userDto) throws Exception {
+        User user = userRepository.findUserById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
+
+        Account account = user.getAccount();
+        if(!account.isActive()){
+            throw new BadRequestException("Account has not been activated");
+        }
+
+        User userSave = User.builder()
+                .firstName(userDto.getFirstName())
+                .lastName(userDto.getLastName())
+                .job(userDto.getJob())
+                .dateOfBirth(ConvertStringToDate.convert(userDto.getDateOfBirth()))
+                .gender(userDto.getGender())
+                .address(userDto.getAddress())
+                .avatar(userDto.getAvatar())
+                .build();
+        userRepository.save(userSave);
+        return ResponseEntity.ok(new Notice("Update profile completed!"));
+    }
+
+    @Override
+    public ResponseEntity<?> forgetPassword(long id) {
+        User user = userRepository.findUserById(id)
+                .orElseThrow(()-> new NotFoundException("The user could not be found"));
+
+        Account account = user.getAccount();
+        String token = jwtService.generateToken(account.getEmail());
+        // Save token -> redis TTL about 30 min
+        stringRedisTemplate.opsForValue().set(token,account.getEmail(),30, TimeUnit.MINUTES);
+        String link = "http://localhost:8080/user/change_password/"+id;
+        return ResponseEntity.ok(new ApiResponse(link,token));
+    }
+
+    @Override
+    public ResponseEntity<?> changePassword(long id,String token, String newPassword) {
+        String tokenRedis = stringRedisTemplate.opsForValue().get(token);
+
+        if (tokenRedis == null) {
+            throw new IllegalArgumentException("Token is invalid or expired");
+        }
+
+        User user = userRepository.findUserById(id)
+                .orElseThrow(() -> new NotFoundException("The user could not be found"));
+
+        Account account = user.getAccount();
+        account.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        accountRepository.save(account);
+
+        // Delete token
+        stringRedisTemplate.delete(token);
+        return ResponseEntity.ok(new Notice("Change password successful"));
     }
 }

@@ -30,5 +30,5 @@ public class Account {
     private boolean isActive;
 
     @OneToOne(cascade = CascadeType.ALL,mappedBy = "account")
-    private UserEntity userEntity;
+    private User user;
 }

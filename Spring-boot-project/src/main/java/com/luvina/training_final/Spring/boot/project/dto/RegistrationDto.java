@@ -13,4 +13,4 @@ public class RegistrationDto {
     private AccountDto account;
 
     @Valid
-    private UserEntityDto user;}
+    private UserDto user;}
