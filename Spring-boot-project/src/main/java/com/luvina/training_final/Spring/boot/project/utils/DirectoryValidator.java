@@ -12,15 +12,16 @@ public class DirectoryValidator implements ConstraintValidator<ValidDirectory, S
 
     @Override
     public boolean isValid(String avatarPath, ConstraintValidatorContext context) {
+        // Cho phép avatarPath null hoặc rỗng
         if (avatarPath == null || avatarPath.isEmpty()) {
-            return false;
+            return true;
         }
 
-        // Kiểm tra avatarPath có hợp lệ theo yêu cầu của bạn không (vd: bắt đầu bằng /uploads)
+        // Kiểm tra avatarPath có hợp lệ theo yêu cầu của bạn
         return avatarPath.startsWith("/uploads/") && (avatarPath.endsWith(".jpg")
-                    || avatarPath.endsWith(".jpeg")
-                    || avatarPath.endsWith(".gif")
-                    || avatarPath.endsWith(".png"));
+                || avatarPath.endsWith(".jpeg")
+                || avatarPath.endsWith(".gif")
+                || avatarPath.endsWith(".png"));
     }
 }
 

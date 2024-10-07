@@ -80,16 +80,19 @@ public class ImageService {
             Path filePath = Path.of(UPLOAD_DIR).resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
-            // Kiểm tra xem file có tồn tại và có thể đọc k
+            // Kiểm tra xem file có tồn tại và có thể đọc
             if (resource.exists() && resource.isReadable()) {
-                String content = Files.probeContentType(filePath);
+                // Lấy kiểu nội dung của file
+                String contentType = Files.probeContentType(filePath);
 
-                if (content != null) {
-                    content = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+                // Nếu không lấy được contentType, sử dụng APPLICATION_OCTET_STREAM làm mặc định
+                if (contentType == null) {
+                    contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
                 }
 
+                // Trả về file với đúng kiểu content type
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(content))
+                        .contentType(MediaType.parseMediaType(contentType))
                         .body(resource);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
@@ -100,4 +103,5 @@ public class ImageService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred when reading the file");
         }
     }
+
 }

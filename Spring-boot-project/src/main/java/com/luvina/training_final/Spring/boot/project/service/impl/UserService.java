@@ -113,7 +113,7 @@ public class UserService implements IUserService {
         account.setActive(true);
         accountRepository.save(account);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new Notice("Active Account completed"));
     }
 
     public ResponseEntity<?> login(AccountDto accountDto){

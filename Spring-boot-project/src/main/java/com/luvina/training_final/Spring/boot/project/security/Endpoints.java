@@ -15,13 +15,15 @@ public class Endpoints {
     public static final String[] USER_POST_ENDPOINT={
             "/user/validate-otp",
             "/friend_ship/send_request",
-            "/upload"
+            "/upload",
+            "/post/create"
     };
 
     public static final String[] USER_PUT_ENDPOINTS={
             "/friend_ship/accept/*",
             "/friend_ship/decline/*",
-            "/user/update_profile/*"
+            "/user/update_profile/*",
+            "/post/edit/*"
     };
 
     public static final String[] USER_GET_ENDPOINTS={
@@ -29,6 +31,7 @@ public class Endpoints {
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={
-            "/friend_ship/delete/*"
+            "/friend_ship/delete/*",
+            "/post/delete/*"
     };
 }
