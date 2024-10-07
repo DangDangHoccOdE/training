@@ -2,9 +2,10 @@ package com.luvina.training_final.Spring.boot.project.utils;
 
 import com.luvina.training_final.Spring.boot.project.dao.AccountRepository;
 import com.luvina.training_final.Spring.boot.project.entity.Account;
-import com.luvina.training_final.Spring.boot.project.exception.NotFoundException;
+import com.luvina.training_final.Spring.boot.project.exception.CustomException;
 import com.luvina.training_final.Spring.boot.project.service.IUserSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,7 @@ public class SecurityUtils {
 
     private Long getUserIdFromPrincipal(Authentication authentication){
         Account account = accountRepository.findAccountByEmail(authentication.getName())
-                .orElseThrow(()->new NotFoundException("Account is not found"));
+                .orElseThrow(()->new CustomException("Account is not found", HttpStatus.NOT_FOUND));
 
         return account.getUser().getId();
     }

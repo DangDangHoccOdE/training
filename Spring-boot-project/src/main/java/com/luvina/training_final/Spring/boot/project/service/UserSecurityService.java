@@ -4,10 +4,11 @@ import com.luvina.training_final.Spring.boot.project.dao.AccountRepository;
 import com.luvina.training_final.Spring.boot.project.entity.Account;
 import com.luvina.training_final.Spring.boot.project.entity.Role;
 import com.luvina.training_final.Spring.boot.project.entity.User;
-import com.luvina.training_final.Spring.boot.project.exception.BadRequestException;
+import com.luvina.training_final.Spring.boot.project.exception.CustomException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +27,7 @@ public class UserSecurityService implements IUserSecurityService {
     @Override
     public Account findByEmail(String email) {
         return accountRepository.findAccountByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Cannot find account with email"));
+                .orElseThrow(() -> new CustomException("Cannot find account with email", HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -34,7 +35,7 @@ public class UserSecurityService implements IUserSecurityService {
         Account account = findByEmail(email);
 
         if(!account.isActive()){
-            throw new BadRequestException("Account has not been activated");
+            throw new CustomException("Account has not been activated",HttpStatus.BAD_REQUEST);
         }
         User user = account.getUser();
         return new org.springframework.security.core.userdetails.User(account.getEmail(),account.getPassword(),userAuthority(user.getRoles()));

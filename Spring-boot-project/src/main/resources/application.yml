@@ -3,7 +3,7 @@ spring:
         name: Spring-boot-project
     datasource:
         password: Dang972004@
-        url: jdbc:mysql://localhost:3306/demo_db
+        url: jdbc:mysql://localhost:3306/demodb
         username: root
     jpa:
         hibernate:
@@ -26,3 +26,9 @@ spring:
         redis:
             host: localhost
             port: 6379
+    servlet:
+        multipart:
+            enabled: true
+            max-file-size: 5MB
+            max-request-size: 5MB
+

@@ -1,10 +1,10 @@
 package com.luvina.training_final.Spring.boot.project.dto;
 
+import com.luvina.training_final.Spring.boot.project.annotation.ValidDirectory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 @Data
 @AllArgsConstructor
@@ -33,7 +33,7 @@ public class UserDto {
     @Size(max = 100, message = "Job must not exceed 100 characters")
     private String job;
 
-    @URL(message = "Avatar must be a valid URL")
+    @ValidDirectory(message = "Avatar path is not valid")
     private String avatar;
 
 }

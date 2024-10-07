@@ -5,12 +5,12 @@ import com.luvina.training_final.Spring.boot.project.dao.UserRepository;
 import com.luvina.training_final.Spring.boot.project.entity.FriendShip;
 import com.luvina.training_final.Spring.boot.project.entity.Notice;
 import com.luvina.training_final.Spring.boot.project.entity.User;
-import com.luvina.training_final.Spring.boot.project.exception.BadRequestException;
-import com.luvina.training_final.Spring.boot.project.exception.NotFoundException;
+import com.luvina.training_final.Spring.boot.project.exception.CustomException;
 import com.luvina.training_final.Spring.boot.project.service.inter.IFriendShipService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -27,14 +27,14 @@ public class FriendShipService implements IFriendShipService {
     @Override
     public ResponseEntity<?> sendFriendRequest(Long senderId, Long receiverId) {
         User sender = userRepository.findUserById(senderId)
-                .orElseThrow(()->new NotFoundException("User not found"));
+                .orElseThrow(()->new CustomException("User not found", HttpStatus.NOT_FOUND));
         User receiver = userRepository.findUserById(receiverId)
-                .orElseThrow(()-> new NotFoundException("User not found"));
+                .orElseThrow(()-> new CustomException("User not found",HttpStatus.NOT_FOUND));
 
         Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender,receiver);
         Optional<FriendShip> existingFriendship2 = friendShipRepository.findByUser1AndUser2(receiver,sender);
         if(existingFriendship2.isPresent()){
-            throw new BadRequestException("Send duplicate invitations!");
+            throw new CustomException("Send duplicate invitations!",HttpStatus.BAD_REQUEST);
         } // check xem có bị 2 người gửi kết bạn cho nhau k
 
         FriendShip friendship = new FriendShip();
@@ -44,7 +44,7 @@ public class FriendShipService implements IFriendShipService {
             friendship = existingFriendship1.get();
             friendship.setUpdateAt(LocalDateTime.now());
             if (!"declined".equals(friendship.getStatus())) {
-                throw new BadRequestException("Friendship request already exists with status: " + friendship.getStatus());
+                throw new CustomException("Friendship request already exists with status: " + friendship.getStatus(),HttpStatus.BAD_REQUEST);
             }
         } else {
             // Nếu chưa có mối quan hệ nào, tạo lời mời mới
@@ -61,10 +61,10 @@ public class FriendShipService implements IFriendShipService {
     @Override
     public ResponseEntity<?> acceptFriendRequest(Long friendShipId) {
         FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new NotFoundException("Friendship not found"));
+                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
 
         if(!friendShip.getStatus().equals("pending")){
-            throw new BadRequestException("Operation failed, friend request not found");
+            throw new CustomException("Operation failed, friend request not found",HttpStatus.NOT_FOUND);
         }
 
         friendShip.setStatus("accepted");
@@ -75,10 +75,10 @@ public class FriendShipService implements IFriendShipService {
     @Override
     public ResponseEntity<?> declineFriendShip(Long friendShipId) {
         FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new NotFoundException("Friendship not found"));
+                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
 
         if(!friendShip.getStatus().equals("pending")){
-            throw new BadRequestException("Operation failed, friend request not found");
+            throw new CustomException("Operation failed, friend request not found",HttpStatus.NOT_FOUND);
         }
 
         friendShip.setStatus("declined");
@@ -88,10 +88,10 @@ public class FriendShipService implements IFriendShipService {
     @Override
     public ResponseEntity<?> deleteFriendShip(Long friendShipId) {
         FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new NotFoundException("Friendship not found"));
+                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
 
         if(!friendShip.getStatus().equals("accepted")){
-            throw new BadRequestException("Operation failed, Cannot unfriend");
+            throw new CustomException("Operation failed, Cannot unfriend",HttpStatus.BAD_REQUEST);
         }
 
         friendShipRepository.delete(friendShip);

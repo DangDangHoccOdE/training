@@ -1,12 +1,12 @@
 package com.luvina.training_final.Spring.boot.project.exception;
 
+import com.luvina.training_final.Spring.boot.project.entity.Notice;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,35 +17,12 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalException extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<?> handleUsernameNotFoundException(UsernameNotFoundException ex, WebRequest request) throws Exception{
-        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                ex.getMessage(),request.getDescription(false));
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> handleNotFoundException(NotFoundException ex, WebRequest request){
-        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                ex.getMessage(),request.getDescription(false));
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException ex, WebRequest request){
+    public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                ex.getMessage()+" Email or Password is incorrect",request.getDescription(false));
+                ex.getMessage() + " Email or Password is incorrect", request.getDescription(false));
 
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
-    }
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<?> handleBadRequestExceptionHandler(BadRequestException ex, WebRequest request){
-        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                 ex.getMessage(),request.getDescription(false));
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -56,12 +33,9 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntimeException(RuntimeException ex,WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
-                ex.getMessage(),request.getDescription(false));
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<?> handleRuntimeException(CustomException customException) {
+        return new ResponseEntity<>(new Notice(customException.getMessage()), customException.getStatus() );
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -69,7 +43,7 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
                 ex.getMessage(),request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
 

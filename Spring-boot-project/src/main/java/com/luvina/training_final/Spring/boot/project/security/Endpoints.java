@@ -8,18 +8,24 @@ public class Endpoints {
     };
 
     public static final String[] PUBLIC_PUT_ENDPOINTS={
-            "/user/change_password/*"
+            "/user/change_password/*",
+            "/user/active_account/*",
     };
 
     public static final String[] USER_POST_ENDPOINT={
             "/user/validate-otp",
-            "/friend_ship/send_request"
+            "/friend_ship/send_request",
+            "/upload"
     };
 
     public static final String[] USER_PUT_ENDPOINTS={
-            "/user/active_account/*",
             "/friend_ship/accept/*",
-            "/friend_ship/decline/*"
+            "/friend_ship/decline/*",
+            "/user/update_profile/*"
+    };
+
+    public static final String[] USER_GET_ENDPOINTS={
+            "/upload",
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={
