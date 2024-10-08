@@ -43,6 +43,15 @@ public class User {
     @Column(name = "avatar",columnDefinition = "TEXT")
     private String avatar;
 
+    @Column(name = "email",unique = true,nullable = false)
+    private String email;
+
+    @Column(name = "password",nullable = false)
+    private String password;
+
+    @Column(name = "isActive",nullable = false)
+    private boolean isActive;
+
     @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "userId"),inverseJoinColumns = @JoinColumn(name = "roleId"))
     private List<Role> roles;
@@ -56,9 +65,9 @@ public class User {
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
     private List<Like> likes;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id")
-    private Account account;
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "account_id")
+//    private Account account;
 
     @OneToMany(mappedBy = "user1",cascade = CascadeType.ALL)
     private List<FriendShip> friendShipsSent;

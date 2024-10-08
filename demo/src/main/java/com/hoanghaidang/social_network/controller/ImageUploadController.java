@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.service.impl.ImageService;
+import io.swagger.v3.oas.annotations.media.Content;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ public class ImageUploadController {
         return imageService.uploadFiles(file);
     }
 
-    @GetMapping("/upload")
+    @GetMapping("/download")
     public ResponseEntity<?> getImage(@RequestParam("filename") String filename) {
         return imageService.getImage(filename);
     }

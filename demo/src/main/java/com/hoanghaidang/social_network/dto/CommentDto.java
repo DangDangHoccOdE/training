@@ -10,8 +10,6 @@ import java.util.List;
 @Getter
 @Setter
 public class CommentDto {
-    private long id;
-
     private List<String> image;
 
     @NotBlank(message = "Content is required")

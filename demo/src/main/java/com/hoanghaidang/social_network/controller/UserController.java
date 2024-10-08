@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.hoanghaidang.social_network.dto.AccountDto;
+
+import com.hoanghaidang.social_network.dto.LoginDto;
 import com.hoanghaidang.social_network.dto.RegistrationDto;
 import com.hoanghaidang.social_network.dto.RequestForgetPasswordDto;
 import com.hoanghaidang.social_network.dto.UserDto;
@@ -31,9 +32,10 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Validated @RequestBody AccountDto accountDto){
-        return iUserService.login(accountDto);
+    public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto){
+        return iUserService.login(loginDto);
     }
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated @RequestBody RegistrationDto registrationDto) throws Exception {
         return iUserService.registerUser(registrationDto);
@@ -41,12 +43,12 @@ public class UserController {
 
     @PutMapping("/active_account/{email}")
     public ResponseEntity<?> activeAccount(@PathVariable String email){
-        return iUserService.activeAccount(email);
+        return iUserService.activeUser(email);
     }
 
-    @PostMapping("/validate-otp")
-    public ResponseEntity<?> validateOtp(@RequestParam("otp") String otp,@Validated @RequestBody AccountDto accountDto){
-        return iUserService.validOtp(otp,accountDto);
+    @PostMapping("/validate_otp")
+    public ResponseEntity<?> validateOtp(@RequestParam("otp") String otp,@Validated @RequestBody LoginDto loginDto){
+        return iUserService.validOtp(otp,loginDto);
     }
 
 }

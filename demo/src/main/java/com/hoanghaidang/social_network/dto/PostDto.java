@@ -12,8 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 public class PostDto {
-    private long id;
-
     @NotBlank(message = "Title is required")
     @Size(max = 255,message = "Title must not exceed 255 characters")
     private String title;
@@ -24,10 +22,6 @@ public class PostDto {
     @NotBlank(message = "Status is required")
     @Pattern(regexp = "Public|Private",message = "Status must be 'Public' or 'Private'")
     private String status;
-
-    private long likeCount;
-
-    private long commentCount;
 
     private List<String> image;
 

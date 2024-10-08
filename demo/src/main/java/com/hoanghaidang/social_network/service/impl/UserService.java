@@ -1,9 +1,8 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.hoanghaidang.social_network.dao.AccountRepository;
-import com.hoanghaidang.social_network.dao.RoleRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.AccountDto;
+import com.hoanghaidang.social_network.dao.RoleRepository;
+import com.hoanghaidang.social_network.dto.LoginDto;
 import com.hoanghaidang.social_network.dto.RegistrationDto;
 import com.hoanghaidang.social_network.dto.UserDto;
 
@@ -38,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class UserService implements IUserService {
    UserRepository userRepository;
-   AccountRepository accountRepository;
    BCryptPasswordEncoder bCryptPasswordEncoder;
    RoleRepository roleRepository;
    IEmailService iEmailService;
@@ -49,19 +47,10 @@ public class UserService implements IUserService {
     @Override
     @Transactional
     public ResponseEntity<?> registerUser(RegistrationDto registrationDto){
-        Optional<Account> account = accountRepository.findAccountByEmail(registrationDto.getAccount().getEmail());
-        if(account.isPresent()){
+        Optional<User> user = userRepository.findByEmail(registrationDto.getEmail());
+        if(user.isPresent()){
             throw new CustomException("Email is exists",HttpStatus.BAD_REQUEST);
         }
-
-        AccountDto accountDto = registrationDto.getAccount();
-        UserDto userDto = registrationDto.getUser();
-
-        Account accountSave = Account.builder()
-                .email(accountDto.getEmail())
-                .password(bCryptPasswordEncoder.encode(accountDto.getPassword()))
-                .isActive(false)
-                .build();
 
         Role roleFind= roleRepository.findByRoleName("ROLE_USER");
 
@@ -72,31 +61,32 @@ public class UserService implements IUserService {
         }
         List<Role> role = new ArrayList<>(Collections.singletonList(roleFind));
 
-        User user ;
+        User userSaved ;
         try {
-            user = User.builder()
-                    .firstName(userDto.getFirstName())
-                    .lastName(userDto.getLastName())
-                    .gender(userDto.getGender())
+            userSaved = User.builder()
+                    .firstName(registrationDto.getFirstName())
+                    .lastName(registrationDto.getLastName())
+                    .gender(registrationDto.getGender())
                     .roles(role)
-                    .dateOfBirth(ConvertStringToDate.convert(userDto.getDateOfBirth()))
-                    .account(accountSave)
+                    .dateOfBirth(ConvertStringToDate.convert(registrationDto.getDateOfBirth()))
+                    .email(registrationDto.getEmail())
+                    .password(bCryptPasswordEncoder.encode(registrationDto.getPassword()))
+                    .isActive(false)
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        accountRepository.save(accountSave);
-        userRepository.save(user);
+        userRepository.save(userSaved);
 
-        sendEmailActive(accountDto.getEmail()); // send email active account
+        sendEmailActive(registrationDto.getEmail()); // send email active user
         return ResponseEntity.ok(new Notice("Register completed"));
     }
 
     private void sendEmailActive(String email){
         String subject = "Kích hoạt tài khoản của bạn";
         String text = "Vui lòng click vào đường dẫn sau để kích hoạt tài khoản: "+email;
-        String url = "http://localhost:8080/user/active_account/"+email;
+        String url = "http://localhost:8080/user/active_user/"+email;
         text+= "<br/> <a href="+url+">"+url+"</a>";
 
         iEmailService.sendMessage("danghoangtest1@gmail.com",email,subject,text);
@@ -104,32 +94,29 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> activeAccount(String email){
-        Account account = accountRepository.findAccountByEmail(email)
-                .orElseThrow(() -> new CustomException("Can not found account", HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> activeUser(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("Can not found user", HttpStatus.NOT_FOUND));
 
-        if(account.isActive()){
-            throw new CustomException("Account has been activated", HttpStatus.BAD_REQUEST);
+        if(user.isActive()){
+            throw new CustomException("User has been activated", HttpStatus.BAD_REQUEST);
         }
-        account.setActive(true);
-        accountRepository.save(account);
+        user.setActive(true);
+        userRepository.save(user);
 
-        return ResponseEntity.ok(new Notice("Active Account completed"));
+        return ResponseEntity.ok(new Notice("Active User completed"));
     }
 
-    public ResponseEntity<?> login(AccountDto accountDto){
+    public ResponseEntity<?> login(LoginDto loginDto){
           try{
               Authentication authentication = authenticationManager.authenticate(
-                      new UsernamePasswordAuthenticationToken(accountDto.getEmail(),accountDto.getPassword()));
-
-              Account account = accountRepository.findAccountByEmail(accountDto.getEmail())
-                      .orElseThrow(() -> new CustomException("Cannot find account with email",HttpStatus.NOT_FOUND));
+                      new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
               if(authentication.isAuthenticated()){
                   String otp = OtpGenerator.generateOtp(6); // 6 char
 
-                  account.setOtp(otp);
-                  accountRepository.save(account);
+                  // Save otp in redis with TTL 5min
+                  stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
                   return ResponseEntity.ok(new Notice("OTP: "+otp));
               }
           }catch (AuthenticationException e){
@@ -139,16 +126,18 @@ public class UserService implements IUserService {
         return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
 
-    public ResponseEntity<?> validOtp(String otp,AccountDto accountDto){
-        Account account = accountRepository.findAccountByEmail(accountDto.getEmail())
-                .orElseThrow(() -> new CustomException("Cannot find account with email",HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> validOtp(String otp,LoginDto loginDto){
+        User user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new CustomException("Cannot find user with email",HttpStatus.NOT_FOUND));
 
-        if(!account.isActive()){
-            throw new CustomException("Account has not been activated",HttpStatus.BAD_REQUEST);
+        if(!user.isActive()){
+            throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
         }
 
-        if(account.getOtp().equals(otp)){
-            String token  = jwtService.generateToken(account.getEmail());
+        // Get otp from redis
+        String cacheOtp = stringRedisTemplate.opsForValue().get(loginDto.getEmail());
+        if(cacheOtp != null && cacheOtp.equals(otp)){
+            String token  = jwtService.generateToken(user.getEmail());
             return ResponseEntity.ok(new Notice("Token: "+token));
         }
 
@@ -158,11 +147,10 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<?> updateProfile(long id,UserDto userDto) throws Exception {
         User user = userRepository.findUserById(id)
-                .orElseThrow(() -> new CustomException("Cannot find account with email",HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("Cannot find user with email",HttpStatus.NOT_FOUND));
 
-        Account account = user.getAccount();
-        if(!account.isActive()){
-            throw new CustomException("Account has not been activated",HttpStatus.BAD_REQUEST);
+        if(!user.isActive()){
+            throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
         }
 
         user.setLastName(userDto.getFirstName());
@@ -173,7 +161,7 @@ public class UserService implements IUserService {
         user.setAddress(userDto.getAddress());
         user.setAvatar(userDto.getAvatar());
         userRepository.save(user);
-        return ResponseEntity.ok(new Notice("Update profile completed!"));
+        return ResponseEntity.ok(userDto);
     }
 
     @Override
@@ -181,10 +169,9 @@ public class UserService implements IUserService {
         User user = userRepository.findUserById(id)
                 .orElseThrow(()-> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
-        Account account = user.getAccount();
-        String token = jwtService.generateToken(account.getEmail());
-        // Save token -> redis TTL about 30 min
-        stringRedisTemplate.opsForValue().set(token,account.getEmail(),30, TimeUnit.MINUTES);
+        String token = jwtService.generateToken(user.getEmail());
+        // Save token -> redis TTL about 5 min
+        stringRedisTemplate.opsForValue().set(token,user.getEmail(),5, TimeUnit.MINUTES);
         String link = "http://localhost:8080/user/change_password/"+id;
         return ResponseEntity.ok(new ApiResponse(link,token));
     }
@@ -200,9 +187,8 @@ public class UserService implements IUserService {
         User user = userRepository.findUserById(id)
                 .orElseThrow(() -> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
-        Account account = user.getAccount();
-        account.setPassword(bCryptPasswordEncoder.encode(newPassword));
-        accountRepository.save(account);
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        userRepository.save(user);
 
         // Delete token
         stringRedisTemplate.delete(token);

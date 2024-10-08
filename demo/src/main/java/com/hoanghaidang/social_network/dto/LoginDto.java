@@ -3,16 +3,12 @@ package com.hoanghaidang.social_network.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@AllArgsConstructor
-@Data
-@NoArgsConstructor
-public class AccountDto {
-    private long id;
-
+@Getter
+@Setter
+public class LoginDto {
     @NotBlank(message = "Email is not empty")
     @Email(message = "Email is not in the correct format")
     private String email;

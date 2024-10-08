@@ -1,11 +1,9 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.hoanghaidang.social_network.entity.Account;
+import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
-import com.hoanghaidang.social_network.service.IUserSecurityService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -24,44 +22,33 @@ import java.util.function.Function;
 @Component
 public class JwtService {
     public static final String SECRET_ACCESS_TOKEN = "dsafwerwdrwerwer01234567894234234rfsdfsdfsdfsdvfuyuytuytu0123456789";
-    public static final String SECRET_REFRESH_TOKEN = "EUOIQWEUQWEJQOWIDKJASDNASDNM1231290KCMASKMDQSLKMDK323I912I3KMCADASD";
-    private final long REFRESH_TOKEN_EXPIRATION = 30 * 24 * 60 * 60 * 100; // 30 days
-    private final IUserSecurityService iUserSecurityService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public JwtService(IUserSecurityService iUserSecurityService) {
-        this.iUserSecurityService = iUserSecurityService;
+    public JwtService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public String generateToken(String email){
         Map<String, Object> claim = new HashMap<>();
-        Account account = iUserSecurityService.findByEmail(email);
-        User user = account.getUser();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        claim.put("isActive",account.isActive());
+        claim.put("isActive", user.isActive());
         claim.put("userId", user.getId());
 
-        boolean isAdmin = false;
         boolean isUser = false;
-
         List<Role> list = user.getRoles();
-        if(!list.isEmpty()){
-            for(Role role : list){
-                if(role.getRoleName().equals("ROLE_ADMIN")){
-                    isAdmin = true;
-                    break;
-                }
-                if(role.getRoleName().equals("ROLE_USER")){
+        if (!list.isEmpty()) {
+            for (Role role : list) {
+                if (role.getRoleName().equals("ROLE_USER")) {
                     isUser = true;
                     break;
                 }
             }
         }
 
-        claim.put("isAdmin",isAdmin);
-        claim.put("isUser",isUser);
-
-        return createToken(claim,email);
+        claim.put("isUser", isUser);
+        return createToken(claim, email);
     }
 
     private String createToken(Map<String, Object> claim, String email){
@@ -69,48 +56,43 @@ public class JwtService {
                 .setClaims(claim)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 360000L))
-                .signWith(getSignKey(JwtService.SECRET_ACCESS_TOKEN), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000L)) // 1 hour expiration
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    private Key getSignKey(String secret){
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+    private Key getSignKey(){
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_ACCESS_TOKEN);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private Claims extractAllClaims(String token, String secret){
-        return Jwts.parser().setSigningKey(getSignKey(secret)).parseClaimsJwt(token).getBody();
+    private Claims extractAllClaims(String token){
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    public <T> T extractClaims(String token, Function<Claims,T> claimsFunction,String secret){
-        Claims claims = extractAllClaims(token,secret);
+    public <T> T extractClaims(String token, Function<Claims,T> claimsFunction){
+        Claims claims = extractAllClaims(token);
         return claimsFunction.apply(claims);
     }
 
-    public Date extractExpiration(String token, String secret){
-        try{
-            return extractClaims(token,Claims::getExpiration,secret);
-        }catch (JwtException e){
-            throw new RuntimeException("Failed to extract expiration from JWT: "+e.getMessage());
-        }
+    public String extractEmail(String token){
+        return extractClaims(token, Claims::getSubject);
     }
 
-    private Boolean isTokenExpired(String token, String secret){
-        Date expiration = extractExpiration(token,secret);
-        if(expiration == null){
-            throw new RuntimeException("Expiration date is null");
-        }
-
-        return expiration.before(new Date());
+    public Date extractExpiration(String token){
+        return extractClaims(token, Claims::getExpiration);
     }
 
-    public String extractEmail(String token, String secret){
-        return extractClaims(token,Claims::getSubject,secret);
+    private Boolean isTokenExpired(String token){
+        return extractExpiration(token).before(new Date());
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails, String secret){
-        String email = extractEmail(token,secret);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token,secret));
+    public Boolean validateToken(String token, UserDetails userDetails){
+        String email = extractEmail(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

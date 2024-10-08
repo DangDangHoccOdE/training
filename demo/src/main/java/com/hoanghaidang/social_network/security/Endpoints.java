@@ -21,9 +21,9 @@ public class Endpoints {
     };
 
     public static final String[] USER_POST_ENDPOINT={
-            "/api/user/validate-otp",
+            "/api/user/validate_otp",
             "/api/friend_ship/send_request",
-            "/api/upload",
+            "/api/download",
             "/api/post/create",
             "/api/comment/create"
     };

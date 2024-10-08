@@ -1,7 +1,6 @@
 package com.hoanghaidang.social_network.service;
 
-import com.hoanghaidang.social_network.dao.AccountRepository;
-import com.hoanghaidang.social_network.entity.Account;
+import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -22,23 +21,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserSecurityService implements IUserSecurityService {
-    AccountRepository accountRepository;
-
-    @Override
-    public Account findByEmail(String email) {
-        return accountRepository.findAccountByEmail(email)
-                .orElseThrow(() -> new CustomException("Cannot find account with email", HttpStatus.NOT_FOUND));
-    }
+    UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("Cannot find account with email", HttpStatus.NOT_FOUND));
 
-        if(!account.isActive()){
+        if(!user.isActive()){
             throw new CustomException("Account has not been activated",HttpStatus.BAD_REQUEST);
         }
-        User user = account.getUser();
-        return new org.springframework.security.core.userdetails.User(account.getEmail(),account.getPassword(),userAuthority(user.getRoles()));
+
+        return new org.springframework.security.core.userdetails.User(user.getEmail(),user.getPassword(),userAuthority(user.getRoles()));
     }
 
     private Collection<? extends GrantedAuthority> userAuthority(Collection<Role> roles) {

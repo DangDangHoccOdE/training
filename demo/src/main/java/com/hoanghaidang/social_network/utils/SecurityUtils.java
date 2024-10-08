@@ -1,7 +1,7 @@
 package com.hoanghaidang.social_network.utils;
 
-import com.hoanghaidang.social_network.dao.AccountRepository;
-import com.hoanghaidang.social_network.entity.Account;
+import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SecurityUtils {
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public SecurityUtils(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+    public SecurityUtils(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public boolean hasNotAccessByUserId(Long userId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return !isAdmin(authentication) && !isUserIdMatch(authentication, userId);
+        return !isUserIdMatch(authentication, userId);
     }
 
     private boolean isUserIdMatch(Authentication authentication,Long userId){
@@ -29,14 +29,9 @@ public class SecurityUtils {
     }
 
     private Long getUserIdFromPrincipal(Authentication authentication){
-        Account account = accountRepository.findAccountByEmail(authentication.getName())
+        User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new CustomException("Account is not found", HttpStatus.NOT_FOUND));
 
-        return account.getUser().getId();
-    }
-
-    private boolean isAdmin(Authentication authentication){
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"));
+        return user.getId();
     }
 }

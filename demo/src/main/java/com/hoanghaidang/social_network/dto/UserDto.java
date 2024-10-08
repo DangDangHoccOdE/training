@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDto {
-    private long id;
-
     @NotBlank(message = "First name is required")
     @Size(max = 20, message = "First name must not exceed 20 characters")
     private String firstName;
@@ -35,5 +33,4 @@ public class UserDto {
 
     @ValidDirectory(message = "Avatar path is not valid")
     private String avatar;
-
 }
