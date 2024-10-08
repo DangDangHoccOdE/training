@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: Spring-boot-project
+  datasource:
+    password: Dang972004@
+    url: jdbc:mysql://localhost:3306/demodb
+    username: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+    show-sql: true
+  mail:
+    host: smtp.gmail.com
+    password: rnsmddbxngmybmat
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    username: danghoangtest1@gmail.com
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    rest:
+      detection-strategy: annotated  # Chỉ tạo REST API cho các repository có @RepositoryRestResource
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 5MB
+
