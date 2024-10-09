@@ -1,6 +1,5 @@
 package com.hoanghaidang.social_network.aop;
 
-import com.hoanghaidang.social_network.dao.CommentRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.CommentDto;
 import com.hoanghaidang.social_network.entity.User;
@@ -17,20 +16,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommentAOP {
     private static final String ACCESS_DENIED_MESSAGE = "You do not have access!";
-    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
 
     @Autowired
-    public CommentAOP(CommentRepository commentRepository, UserRepository userRepository, SecurityUtils securityUtils) {
-        this.commentRepository = commentRepository;
+    public CommentAOP(UserRepository userRepository, SecurityUtils securityUtils) {
         this.userRepository = userRepository;
         this.securityUtils = securityUtils;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.createComment(..)) && args(..,commentDto)")
-    public void hasAccess(CommentDto commentDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(commentDto.getUserId())
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.createComment(..)) && args(..,userId,postId,commentDto)", argNames = "userId,postId,commentDto")
+    public void hasAccess(long userId, long postId,CommentDto commentDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(userId)
                 .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);

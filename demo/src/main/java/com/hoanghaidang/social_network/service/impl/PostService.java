@@ -6,23 +6,27 @@ import com.hoanghaidang.social_network.dto.PostDto;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
+import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.service.inter.IPostService;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class PostService implements IPostService {
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
-    private UserRepository userRepository;
+    PostRepository postRepository;
+    UserRepository userRepository;
     @Override
-    public ResponseEntity<?> createPost(PostDto postDto) {
-        User user = userRepository.findUserById(postDto.getUserId()).get();
-//                .orElseThrow(()->new CustomException("User not found", HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> createPost(long userId,PostDto postDto) {
+        User user = userRepository.findUserById(userId).get();
 
         Post post = Post.builder()
                 .title(postDto.getTitle())
@@ -42,7 +46,6 @@ public class PostService implements IPostService {
     @Override
     public ResponseEntity<?> editPost(long postId,PostDto postDto) {
         Post post = postRepository.findById(postId).get();
-//                .orElseThrow(()->new CustomException("Post can not found",HttpStatus.NOT_FOUND));
 
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
@@ -50,13 +53,12 @@ public class PostService implements IPostService {
         post.setUpdateAt(LocalDateTime.now());
         post.setImage(postDto.getImage());
         postRepository.save(post);
-        return ResponseEntity.ok(new Notice("Edit post completed"));
+        return ResponseEntity.ok(postDto);
     }
 
     @Override
     public ResponseEntity<?> deletePost(long postId) {
         Post post = postRepository.findById(postId).get();
-//                .orElseThrow(()->new CustomException("Post can not found",HttpStatus.NOT_FOUND));
 
         postRepository.delete(post);
         return ResponseEntity.ok(new Notice("Delete post completed"));

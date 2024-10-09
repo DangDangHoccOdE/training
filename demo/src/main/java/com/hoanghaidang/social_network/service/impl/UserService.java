@@ -10,7 +10,6 @@ import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.service.inter.IEmailService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
-import com.hoanghaidang.social_network.utils.ConvertStringToDate;
 import com.hoanghaidang.social_network.utils.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -46,7 +45,7 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> registerUser(RegistrationDto registrationDto){
+    public ResponseEntity<?> registerUser(RegistrationDto registrationDto) throws Exception {
         Optional<User> user = userRepository.findByEmail(registrationDto.getEmail());
         if(user.isPresent()){
             throw new CustomException("Email is exists",HttpStatus.BAD_REQUEST);
@@ -68,13 +67,14 @@ public class UserService implements IUserService {
                     .lastName(registrationDto.getLastName())
                     .gender(registrationDto.getGender())
                     .roles(role)
-                    .dateOfBirth(ConvertStringToDate.convert(registrationDto.getDateOfBirth()))
+                    .dateOfBirth(registrationDto.getDateOfBirth())
                     .email(registrationDto.getEmail())
                     .password(bCryptPasswordEncoder.encode(registrationDto.getPassword()))
                     .isActive(false)
                     .build();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            throw e;
         }
 
         userRepository.save(userSaved);
@@ -86,7 +86,7 @@ public class UserService implements IUserService {
     private void sendEmailActive(String email){
         String subject = "Kích hoạt tài khoản của bạn";
         String text = "Vui lòng click vào đường dẫn sau để kích hoạt tài khoản: "+email;
-        String url = "http://localhost:8080/user/active_user/"+email;
+        String url = "http://localhost:8080/api/user/active_account/"+email;
         text+= "<br/> <a href="+url+">"+url+"</a>";
 
         iEmailService.sendMessage("danghoangtest1@gmail.com",email,subject,text);
@@ -96,7 +96,7 @@ public class UserService implements IUserService {
     @Transactional
     public ResponseEntity<?> activeUser(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("Can not found user", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
 
         if(user.isActive()){
             throw new CustomException("User has been activated", HttpStatus.BAD_REQUEST);
@@ -126,18 +126,11 @@ public class UserService implements IUserService {
         return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
 
-    public ResponseEntity<?> validOtp(String otp,LoginDto loginDto){
-        User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new CustomException("Cannot find user with email",HttpStatus.NOT_FOUND));
-
-        if(!user.isActive()){
-            throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
-        }
-
+    public ResponseEntity<?> validOtp(String otp,String email){
         // Get otp from redis
-        String cacheOtp = stringRedisTemplate.opsForValue().get(loginDto.getEmail());
+        String cacheOtp = stringRedisTemplate.opsForValue().get(email);
         if(cacheOtp != null && cacheOtp.equals(otp)){
-            String token  = jwtService.generateToken(user.getEmail());
+            String token  = jwtService.generateToken(email);
             return ResponseEntity.ok(new Notice("Token: "+token));
         }
 
@@ -145,9 +138,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> updateProfile(long id,UserDto userDto) throws Exception {
-        User user = userRepository.findUserById(id)
-                .orElseThrow(() -> new CustomException("Cannot find user with email",HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> updateProfile(long id,UserDto userDto) {
+        User user = userRepository.findUserById(id).get();
 
         if(!user.isActive()){
             throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
@@ -156,7 +148,7 @@ public class UserService implements IUserService {
         user.setLastName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setJob(userDto.getJob());
-        user.setDateOfBirth(ConvertStringToDate.convert(userDto.getDateOfBirth()));
+        user.setDateOfBirth(userDto.getDateOfBirth());
         user.setGender(userDto.getGender());
         user.setAddress(userDto.getAddress());
         user.setAvatar(userDto.getAvatar());
@@ -172,7 +164,7 @@ public class UserService implements IUserService {
         String token = jwtService.generateToken(user.getEmail());
         // Save token -> redis TTL about 5 min
         stringRedisTemplate.opsForValue().set(token,user.getEmail(),5, TimeUnit.MINUTES);
-        String link = "http://localhost:8080/user/change_password/"+id;
+        String link = "http://localhost:8080/api/user/change_password/"+id;
         return ResponseEntity.ok(new ApiResponse(link,token));
     }
 
@@ -181,12 +173,16 @@ public class UserService implements IUserService {
         String tokenRedis = stringRedisTemplate.opsForValue().get(token);
 
         if (tokenRedis == null) {
-            throw new IllegalArgumentException("Token is invalid or expired");
+            throw new CustomException("Token is invalid or expired",HttpStatus.UNAUTHORIZED);
         }
 
+        String email = jwtService.extractEmail(token);
         User user = userRepository.findUserById(id)
                 .orElseThrow(() -> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
+        if(!email.equals(user.getEmail())){
+            throw new CustomException("User information does not match",HttpStatus.BAD_REQUEST);
+        }
         user.setPassword(bCryptPasswordEncoder.encode(newPassword));
         userRepository.save(user);
 

@@ -27,9 +27,9 @@ public class FriendShipService implements IFriendShipService {
     @Override
     public ResponseEntity<?> sendFriendRequest(Long senderId, Long receiverId) {
         User sender = userRepository.findUserById(senderId)
-                .orElseThrow(()->new CustomException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(()->new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
         User receiver = userRepository.findUserById(receiverId)
-                .orElseThrow(()-> new CustomException("User not found",HttpStatus.NOT_FOUND));
+                .orElseThrow(()-> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
         Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender,receiver);
         Optional<FriendShip> existingFriendship2 = friendShipRepository.findByUser1AndUser2(receiver,sender);
@@ -60,11 +60,10 @@ public class FriendShipService implements IFriendShipService {
 
     @Override
     public ResponseEntity<?> acceptFriendRequest(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
+        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
 
         if(!friendShip.getStatus().equals("pending")){
-            throw new CustomException("Operation failed, friend request not found",HttpStatus.NOT_FOUND);
+            throw new CustomException("Operation failed, friend request not found",HttpStatus.BAD_REQUEST);
         }
 
         friendShip.setStatus("accepted");
@@ -74,11 +73,10 @@ public class FriendShipService implements IFriendShipService {
 
     @Override
     public ResponseEntity<?> declineFriendShip(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
+        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
 
         if(!friendShip.getStatus().equals("pending")){
-            throw new CustomException("Operation failed, friend request not found",HttpStatus.NOT_FOUND);
+            throw new CustomException("Operation failed, friend request not found",HttpStatus.BAD_REQUEST);
         }
 
         friendShip.setStatus("declined");
@@ -87,8 +85,7 @@ public class FriendShipService implements IFriendShipService {
 
     @Override
     public ResponseEntity<?> deleteFriendShip(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(()-> new CustomException("Friendship not found",HttpStatus.NOT_FOUND));
+        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
 
         if(!friendShip.getStatus().equals("accepted")){
             throw new CustomException("Operation failed, Cannot unfriend",HttpStatus.BAD_REQUEST);

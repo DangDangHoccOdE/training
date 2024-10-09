@@ -9,7 +9,7 @@ public interface IUserService {
     ResponseEntity<?> registerUser(RegistrationDto registrationDto) throws Exception;
     ResponseEntity<?> activeUser(String email);
     ResponseEntity<?> login(LoginDto loginDto);
-    ResponseEntity<?> validOtp(String otp,LoginDto loginDto);
+    ResponseEntity<?> validOtp(String otp,String email);
     ResponseEntity<?> updateProfile(long id,UserDto userDto) throws Exception;
     ResponseEntity<?> forgetPassword(long id);
     ResponseEntity<?> changePassword(long id,String token, String newPassword);

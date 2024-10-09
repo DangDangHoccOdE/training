@@ -29,28 +29,30 @@ public class PostAOP {
         this.securityUtils = securityUtils;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.createPost(..)) && args(..,postDto)")
-    public void hasAccessSendFriendship(PostDto postDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(postDto.getUserId())
-                .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.createPost(..)) && args(..,userId,postDto)", argNames = "userId,postDto")
+    public void hasAccessCreatePost(long userId,PostDto postDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(userId)
+                .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }
     }
 
     @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.editPost(..)) && args(..,postId,postDto)", argNames = "postId,postDto")
-    public void hasAccessSendFriendship(long postId,PostDto postDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(postDto.getUserId())
-                .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
+    public void hasAccessEditPost(long postId,PostDto postDto) throws AccessDeniedException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
+
+        User user = post.getUser();
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }
     }
 
     @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.deletePost(..)) && args(..,postId)")
-    public void hasAccessSendFriendship(long postId) throws AccessDeniedException {
+    public void hasAccessDelete(long postId) throws AccessDeniedException {
         Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new CustomException("Post not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
         if (securityUtils.hasNotAccessByUserId(post.getUser().getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }

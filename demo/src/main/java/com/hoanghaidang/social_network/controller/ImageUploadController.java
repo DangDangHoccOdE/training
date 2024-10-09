@@ -1,29 +1,35 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.service.impl.ImageService;
-import io.swagger.v3.oas.annotations.media.Content;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 
 @RestController
+@RequestMapping("/api")
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@Tag(name = "Image Management", description = "APIs for managing Image")
 public class ImageUploadController {
-    @Autowired
-    private ImageService imageService;
+   ImageService imageService;
 
-    @PostMapping("/upload")
+    @Operation(summary = "Upload", description = "Upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImage(@RequestParam("files") List<MultipartFile> file) {
         return imageService.uploadFiles(file);
     }
 
-    @GetMapping("/download")
+    @Operation(summary = "Download", description = "Download")
+    @GetMapping(value = "/download", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> getImage(@RequestParam("filename") String filename) {
         return imageService.getImage(filename);
     }

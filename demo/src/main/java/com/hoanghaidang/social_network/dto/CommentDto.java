@@ -1,7 +1,6 @@
 package com.hoanghaidang.social_network.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,10 +13,4 @@ public class CommentDto {
 
     @NotBlank(message = "Content is required")
     private String content;
-
-    @NotNull(message = "User ID is required")
-    private long userId;
-
-    @NotNull
-    private long postId;
 }
