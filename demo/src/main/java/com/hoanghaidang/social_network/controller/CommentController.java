@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/comment")
-@Tag(name = "Friendship Management", description = "APIs for managing friendship")
+@Tag(name = "Comment Management", description = "APIs for managing comment")
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class CommentController {

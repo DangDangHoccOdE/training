@@ -1,9 +1,12 @@
 package com.hoanghaidang.social_network.aop;
 
 import com.hoanghaidang.social_network.dao.CommentRepository;
+import com.hoanghaidang.social_network.dao.LikeRepository;
+import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.CommentDto;
 import com.hoanghaidang.social_network.entity.Comment;
+import com.hoanghaidang.social_network.entity.Like;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.utils.SecurityUtils;
@@ -19,22 +22,26 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-public class CommentAOP {
+public class LikeAOP {
     static final String ACCESS_DENIED_MESSAGE = "You do not have access!";
     UserRepository userRepository;
     SecurityUtils securityUtils;
     CommentRepository commentRepository;
+    PostRepository postRepository;
+    private final LikeRepository likeRepository;
 
     @Autowired
-    public CommentAOP(UserRepository userRepository, SecurityUtils securityUtils, CommentRepository commentRepository) {
+    public LikeAOP(UserRepository userRepository, SecurityUtils securityUtils, CommentRepository commentRepository, PostRepository postRepository,
+                   LikeRepository likeRepository) {
         this.userRepository = userRepository;
         this.securityUtils = securityUtils;
         this.commentRepository = commentRepository;
-
+        this.postRepository = postRepository;
+        this.likeRepository = likeRepository;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.createComment(..)) && args(..,userId,postId,commentDto)", argNames = "userId,postId,commentDto")
-    public void hasAccess(long userId, long postId,CommentDto commentDto) throws AccessDeniedException {
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likePost(..)) && args(..,userId,postId)", argNames = "userId,postId")
+    public void hasAccessLikePost(long userId, long postId) throws AccessDeniedException {
         User user = userRepository.findUserById(userId)
                 .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
@@ -43,23 +50,22 @@ public class CommentAOP {
         }
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.editComment(..)) && args(..,commentId,commentDto)", argNames = "commentId,commentDto")
-    public void hasAccess(long commentId,CommentDto commentDto) throws AccessDeniedException {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(()->new CustomException("Comment not found", HttpStatus.NOT_FOUND));
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likeComment(..)) && args(..,userId,commentId)", argNames = "userId,commentId")
+    public void hasAccessLikeComment(long userId,long commentId) throws AccessDeniedException {
+        User user = userRepository.findUserById(userId)
+                .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-        User user = comment.getUser();
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.deleteComment(..)) && args(..,commentId)")
-    public void hasAccess(long commentId) throws AccessDeniedException {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(()->new CustomException("Comment not found", HttpStatus.NOT_FOUND));
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.deleteLike(..)) && args(..,likeId)")
+    public void hasAccess(long likeId) throws AccessDeniedException {
+        Like like = likeRepository.findById(likeId)
+                .orElseThrow(()->new CustomException("Like not found", HttpStatus.NOT_FOUND));
 
-        User user = comment.getUser();
+        User user = like.getUser();
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }

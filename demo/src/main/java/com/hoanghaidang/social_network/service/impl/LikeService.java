@@ -30,14 +30,15 @@ public class LikeService implements ILikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(()->new CustomException("The post in not found", HttpStatus.NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(()->new CustomException("The user in not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findById(userId).get();
 
         Like like = Like.builder()
                 .createAt(LocalDateTime.now())
                 .post(post)
                 .user(user)
                 .build();
+
+        post.setLikeCount(post.getLikeCount()+1);
 
         likeRepository.save(like);
         return ResponseEntity.ok(new Notice("Like post is completed"));
@@ -48,8 +49,7 @@ public class LikeService implements ILikeService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new CustomException("The comment in not found", HttpStatus.NOT_FOUND));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(()->new CustomException("The user in not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findById(userId).get();
 
         Like like = Like.builder()
                 .createAt(LocalDateTime.now())
@@ -57,14 +57,24 @@ public class LikeService implements ILikeService {
                 .user(user)
                 .build();
 
+        comment.setLikeCount(comment.getLikeCount()+1);
+
         likeRepository.save(like);
         return ResponseEntity.ok(new Notice("Like comment is completed"));
     }
 
     @Override
     public ResponseEntity<?> deleteLike(long likeId) {
-        Like like = likeRepository.findById(likeId)
-                .orElseThrow(()->new CustomException("The post in not found", HttpStatus.NOT_FOUND));
+        Like like = likeRepository.findById(likeId).get();
+
+        Post post = like.getPost();
+
+        if(post!=null){
+            post.setLikeCount(post.getLikeCount()-1);
+        }else{
+            Comment comment = like.getComment();
+            comment.setLikeCount(comment.getLikeCount()-1);
+        }
 
         likeRepository.delete(like);
         return ResponseEntity.ok(new Notice("Delete like of post is completed"));

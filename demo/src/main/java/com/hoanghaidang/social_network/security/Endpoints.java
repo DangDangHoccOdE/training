@@ -23,11 +23,11 @@ public class Endpoints {
 
     public static final String[] USER_POST_ENDPOINT={
             "/api/friend_ship/send_request",
-            "/api/download",
             "/api/post/create/user/*",
             "/api/comment/user/*/post/*",
             "/api/like/user/*/post/*",
-            "/api/like/user/*/comment/*"
+            "/api/like/user/*/comment/*",
+            "/api/upload",
     };
 
     public static final String[] USER_PUT_ENDPOINTS={
@@ -39,7 +39,7 @@ public class Endpoints {
     };
 
     public static final String[] USER_GET_ENDPOINTS={
-            "/api/upload",
+            "/api/download",
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={

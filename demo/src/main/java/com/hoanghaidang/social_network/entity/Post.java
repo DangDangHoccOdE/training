@@ -37,10 +37,10 @@ public class Post {
     private String status;
 
     @Column(name = "like_count")
-    private long likeCount;
+    private long likeCount=0;
 
     @Column(name = "comment_count")
-    private long commentCount;
+    private long commentCount=0;
 
     @ElementCollection
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))

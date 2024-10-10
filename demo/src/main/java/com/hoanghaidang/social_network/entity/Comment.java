@@ -30,6 +30,9 @@ public class Comment {
     @Column(name = "update_at")
     private LocalDateTime updateAt;
 
+    @Column(name = "like_count")
+    private long likeCount =0;
+
     @ElementCollection
     @CollectionTable(name = "comment_images", joinColumns = @JoinColumn(name = "comment_id"))
     @Column(name = "image_path")

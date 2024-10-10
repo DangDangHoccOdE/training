@@ -32,8 +32,8 @@ public class CommentService implements ICommentService {
         User user = userRepository.findUserById(userId).get();
 //                .orElseThrow(()->new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-        Post post = postRepository.findById(postId)
-                .orElseThrow(()->new CustomException("Post not found", HttpStatus.NOT_FOUND));
+        Post post = postRepository.findById(postId).get();
+//                .orElseThrow(()->new CustomException("Post not found", HttpStatus.NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .createAt(LocalDateTime.now())
@@ -43,6 +43,9 @@ public class CommentService implements ICommentService {
                 .post(post)
                 .build();
 
+        post.setCommentCount(post.getCommentCount()+1);
+
+        postRepository.save(post);
         commentRepository.save(comment);
         return ResponseEntity.ok(new Notice("Create comment completed"));
     }
@@ -65,6 +68,10 @@ public class CommentService implements ICommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new CustomException("Comment not found", HttpStatus.NOT_FOUND));
 
+        Post post = comment.getPost();
+        post.setCommentCount(post.getCommentCount()-1);
+
+        postRepository.save(post);
         commentRepository.delete(comment);
         return ResponseEntity.ok(new Notice("Delete comment completed"));
     }
