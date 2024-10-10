@@ -17,9 +17,9 @@ public class PostController {
     private IPostService iPostService;
 
     @Operation(summary = "Create Post", description = "Create Post")
-    @PostMapping("/create/user/{userId}")
-    public ResponseEntity<?> createPost(@PathVariable("userId") long userId,@Validated @RequestBody PostDto postDto){
-        return iPostService.createPost(userId,postDto);
+    @PostMapping("/create_post")
+    public ResponseEntity<?> createPost(@Validated @RequestBody PostDto postDto){
+        return iPostService.createPost(postDto);
     }
 
     @Operation(summary = "Edit Post", description = "Edit Post")

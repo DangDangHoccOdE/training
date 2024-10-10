@@ -29,20 +29,27 @@ public class CommentService implements ICommentService {
 
     @Override
     public ResponseEntity<?> createComment(long userId, long postId,CommentDto commentDto) {
+        if((commentDto.getImage() == null || commentDto.getImage().isEmpty() )
+            && commentDto.getContent()==null){
+            throw new CustomException("Images or Content is required",HttpStatus.BAD_REQUEST);
+        }
         User user = userRepository.findUserById(userId).get();
-//                .orElseThrow(()->new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-        Post post = postRepository.findById(postId).get();
-//                .orElseThrow(()->new CustomException("Post not found", HttpStatus.NOT_FOUND));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new CustomException("Post is not found",HttpStatus.NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .createAt(LocalDateTime.now())
-                .image(commentDto.getImage())
-                .content(commentDto.getContent())
                 .user(user)
                 .post(post)
                 .build();
 
+        if(commentDto.getImage() != null){
+            comment.setImage(commentDto.getImage());
+        }
+        if(commentDto.getContent() != null){
+            comment.setContent(commentDto.getContent());
+        }
         post.setCommentCount(post.getCommentCount()+1);
 
         postRepository.save(post);

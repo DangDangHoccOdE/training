@@ -1,9 +1,9 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dao.RoleRepository;
+import com.hoanghaidang.social_network.dao.*;
 import com.hoanghaidang.social_network.dto.LoginDto;
 import com.hoanghaidang.social_network.dto.RegistrationDto;
+import com.hoanghaidang.social_network.dto.ReportDto;
 import com.hoanghaidang.social_network.dto.UserDto;
 
 import com.hoanghaidang.social_network.entity.*;
@@ -11,13 +11,17 @@ import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.service.inter.IEmailService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import com.hoanghaidang.social_network.utils.ConvertStringToDate;
+import com.hoanghaidang.social_network.utils.ExcelGenerator;
 import com.hoanghaidang.social_network.utils.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +30,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +50,40 @@ public class UserService implements IUserService {
    AuthenticationManager authenticationManager;
    JwtService jwtService;
    StringRedisTemplate stringRedisTemplate;
+   PostRepository postRepository;
+    private final FriendShipRepository friendShipRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
+
+    @Override
+    public ResponseEntity<?> report(String email) throws IOException {
+        User user = userRepository.findByEmail(email).get();
+
+        // Lấy ngày tuần trước:
+        LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        long userId = user.getId();
+        int postCount = postRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+        int friendShipSenderCount = friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(userId,"accept",startDate,endDate);
+        int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,"accept",startDate,endDate);
+        int newFriendshipCount = friendShipSenderCount + friendShipReceiverCount;
+        int newCommentCount = commentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+        int likeCount = likeRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+
+        ReportDto reportDto = new ReportDto(postCount,newFriendshipCount,likeCount,newCommentCount);
+
+        ByteArrayInputStream excelFile = ExcelGenerator.generateExcel(reportDto);
+
+        // Trả về header dưới dạng response
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Content-Disposition","attachment; filename=weekly_report.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(httpHeaders)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(new InputStreamResource(excelFile));
+    }
 
     @Override
     @Transactional
@@ -135,12 +176,15 @@ public class UserService implements IUserService {
             return ResponseEntity.ok(new Notice("Token: "+token));
         }
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+
         return ResponseEntity.badRequest().body(new Notice("Otp is not correct!"));
     }
 
     @Override
-    public ResponseEntity<?> updateProfile(long id,UserDto userDto) {
-        User user = userRepository.findUserById(id).get();
+    public ResponseEntity<?> updateProfile(String email,UserDto userDto) {
+        User user = userRepository.findByEmail(email).get();
 
         if(!user.isActive()){
             throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
@@ -158,30 +202,30 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> forgetPassword(long id) {
-        User user = userRepository.findUserById(id)
+    public ResponseEntity<?> forgetPassword(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
         String token = jwtService.generateToken(user.getEmail());
         // Save token -> redis TTL about 5 min
         stringRedisTemplate.opsForValue().set(token,user.getEmail(),5, TimeUnit.MINUTES);
-        String link = "http://localhost:8080/api/user/change_password/"+id;
+        String link = "http://localhost:8080/api/user/change_password/"+email;
         return ResponseEntity.ok(new ApiResponse(link,token));
     }
 
     @Override
-    public ResponseEntity<?> changePassword(long id,String token, String newPassword) {
+    public ResponseEntity<?> changePassword(String email,String token, String newPassword) {
         String tokenRedis = stringRedisTemplate.opsForValue().get(token);
 
         if (tokenRedis == null) {
             throw new CustomException("Token is invalid or expired",HttpStatus.UNAUTHORIZED);
         }
 
-        String email = jwtService.extractEmail(token);
-        User user = userRepository.findUserById(id)
+        String emailToken = jwtService.extractEmail(token);
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 
-        if(!email.equals(user.getEmail())){
+        if(!emailToken.equals(user.getEmail())){
             throw new CustomException("User information does not match",HttpStatus.BAD_REQUEST);
         }
         user.setPassword(bCryptPasswordEncoder.encode(newPassword));

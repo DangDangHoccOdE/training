@@ -1,9 +1,9 @@
 package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dto.UploadImageResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -92,9 +92,11 @@ public class ImageService {
                     contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
                 }
 
-                // Trả về file với đúng kiểu content type
+                // Đặt "Content-Disposition" để hiển thị hoặc download
+                String headerValue = "attachment; filename=\"" + filename + "\"";
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, headerValue) // Đặt header để download
                         .body(resource);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
@@ -105,5 +107,6 @@ public class ImageService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred when reading the file");
         }
     }
+
 
 }

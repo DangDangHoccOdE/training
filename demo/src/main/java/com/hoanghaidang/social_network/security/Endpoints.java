@@ -4,15 +4,16 @@ public class Endpoints {
     public static final String[] PUBLIC_POST_ENDPOINTS={
             "/api/user/register",
             "/api/user/login",
-            "/api/user/forget_password/*",
+            "/api/user/forget_password",
             "/api/user/validate_otp",
             "/v3/api-docs/**",
-            "/swagger-ui/**", "/swagger-ui.html"
+            "/swagger-ui/**", "/swagger-ui.html",
+
     };
 
     public static final String[] PUBLIC_GET_ENDPOINTS={
             "/v3/api-docs/**",
-            "/swagger-ui/**", "/swagger-ui.html"
+            "/swagger-ui/**", "/swagger-ui.html",
     };
 
 
@@ -23,8 +24,8 @@ public class Endpoints {
 
     public static final String[] USER_POST_ENDPOINT={
             "/api/friend_ship/send_request",
-            "/api/post/create/user/*",
-            "/api/comment/user/*/post/*",
+            "/api/post/create_post",
+            "/api/comment/comment_post",
             "/api/like/like_post",
             "/api/like/like_comment",
             "/api/upload",
@@ -40,6 +41,7 @@ public class Endpoints {
 
     public static final String[] USER_GET_ENDPOINTS={
             "/api/download",
+            "/api/user/report/*"
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={

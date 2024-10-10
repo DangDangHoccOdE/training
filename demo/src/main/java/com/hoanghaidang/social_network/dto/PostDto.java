@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -11,6 +12,9 @@ import java.util.List;
 @Getter
 @Setter
 public class PostDto {
+    @NotNull(message = "UserId is required")
+    private long userId;
+
     @NotBlank(message = "Title is required")
     @Size(max = 255,message = "Title must not exceed 255 characters")
     private String title;

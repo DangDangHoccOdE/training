@@ -29,9 +29,9 @@ public class PostAOP {
         this.securityUtils = securityUtils;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.createPost(..)) && args(..,userId,postDto)", argNames = "userId,postDto")
-    public void hasAccessCreatePost(long userId,PostDto postDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(userId)
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.PostController.createPost(..)) && args(..,postDto)")
+    public void hasAccessCreatePost(PostDto postDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(postDto.getUserId())
                 .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);

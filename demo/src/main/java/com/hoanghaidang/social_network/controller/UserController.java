@@ -1,10 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 
-import com.hoanghaidang.social_network.dto.LoginDto;
-import com.hoanghaidang.social_network.dto.RegistrationDto;
-import com.hoanghaidang.social_network.dto.RequestForgetPasswordDto;
-import com.hoanghaidang.social_network.dto.UserDto;
+import com.hoanghaidang.social_network.dto.*;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.ErrorDetails;
 import com.hoanghaidang.social_network.service.inter.IUserService;
@@ -20,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "User Management", description = "APIs for managing user accounts and authentication")
@@ -27,22 +26,29 @@ public class UserController {
     @Autowired
     private IUserService iUserService;
 
+    @Operation(summary = "Report User",description = "Report User during a week")
+    @GetMapping("/report/{email}")
+    public ResponseEntity<?> report(@PathVariable String email) throws IOException {
+        return iUserService.report(email);
+    }
+
+
     @Operation(summary = "Forget Password", description = "Forget Password")
-    @PostMapping("/forget_password/{id}")
-    public ResponseEntity<?> forgetPassword(@PathVariable long id){
-        return iUserService.forgetPassword(id);
+    @PostMapping("/forget_password")
+    public ResponseEntity<?> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
+        return iUserService.forgetPassword(userRequestDto.getEmail());
     }
 
     @Operation(summary = "Change Password", description = "Change Password")
-    @PutMapping("/change_password/{id}")
-    public ResponseEntity<?> changePassword(@PathVariable long id,@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
-        return iUserService.changePassword(id,requestForgetPasswordDto.getToken(),requestForgetPasswordDto.getNewPassword());
+    @PutMapping("/change_password/{email}")
+    public ResponseEntity<?> changePassword(@PathVariable String email,@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
+        return iUserService.changePassword(email,requestForgetPasswordDto.getToken(),requestForgetPasswordDto.getNewPassword());
     }
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
-    @PutMapping("/update_profile/{id}")
-    public ResponseEntity<?> updateProfile(@PathVariable long id,@Validated @RequestBody UserDto userDto) throws Exception{
-        return iUserService.updateProfile(id,userDto);
+    @PutMapping("/update_profile/{email}")
+    public ResponseEntity<?> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto) throws Exception{
+        return iUserService.updateProfile(email,userDto);
     }
 
     @Operation(summary = "Login User", description = "Login User")
@@ -65,8 +71,8 @@ public class UserController {
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")
     @PostMapping("/validate_otp")
-    public ResponseEntity<?> validateOtp(@RequestParam("otp") String otp, @RequestParam("email") String email){
-        return iUserService.validOtp(otp,email);
+    public ResponseEntity<?> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
+        return iUserService.validOtp(validateOtpDto.getOtp(),validateOtpDto.getEmail());
     }
 
 }

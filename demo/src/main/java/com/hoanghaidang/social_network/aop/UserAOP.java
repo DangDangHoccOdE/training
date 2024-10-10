@@ -1,9 +1,8 @@
 package com.hoanghaidang.social_network.aop;
 
-import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.PostDto;
 import com.hoanghaidang.social_network.dto.UserDto;
+import com.hoanghaidang.social_network.dto.UserRequestDto;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.utils.SecurityUtils;
@@ -27,9 +26,18 @@ public class UserAOP {
         this.securityUtils = securityUtils;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.UserController.updateProfile(..)) && args(..,userId,userDto)", argNames = "userId,userDto")
-    public void hasAccessUpdateProfile(long userId, UserDto userDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(userId)
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.UserController.updateProfile(..)) && args(..,email,userDto)", argNames = "email,userDto")
+    public void hasAccessUpdateProfile(String email, UserDto userDto) throws AccessDeniedException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+        if (securityUtils.hasNotAccessByUserId(user.getId())) {
+            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+        }
+    }
+
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.UserController.report(..)) && args(..,email)")
+    public void hasAccessUpdateProfile(String email) throws AccessDeniedException {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);

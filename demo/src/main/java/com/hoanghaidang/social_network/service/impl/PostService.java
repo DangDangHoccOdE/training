@@ -25,8 +25,8 @@ public class PostService implements IPostService {
     PostRepository postRepository;
     UserRepository userRepository;
     @Override
-    public ResponseEntity<?> createPost(long userId,PostDto postDto) {
-        User user = userRepository.findUserById(userId).get();
+    public ResponseEntity<?> createPost(PostDto postDto) {
+        User user = userRepository.findUserById(postDto.getUserId()).get();
 
         Post post = Post.builder()
                 .title(postDto.getTitle())
