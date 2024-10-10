@@ -1,23 +1,15 @@
 package com.hoanghaidang.social_network.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-public class CommentDto {
+public class LikePostDto {
     @NotNull(message = "UserId is required")
     private long userId;
 
     @NotNull(message = "PostId is required")
     private long postId;
-
-    private List<String> image;
-
-    @NotBlank(message = "Content is required")
-    private String content;
 }

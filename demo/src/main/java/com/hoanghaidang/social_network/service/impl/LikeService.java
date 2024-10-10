@@ -32,6 +32,11 @@ public class LikeService implements ILikeService {
 
         User user = userRepository.findById(userId).get();
 
+        Like findLike = likeRepository.findByUserIdAndPostId(userId, postId);
+        if(findLike != null) {
+            throw new CustomException("Like is duplicate!",HttpStatus.BAD_REQUEST);
+        }
+
         Like like = Like.builder()
                 .createAt(LocalDateTime.now())
                 .post(post)
@@ -51,6 +56,11 @@ public class LikeService implements ILikeService {
 
         User user = userRepository.findById(userId).get();
 
+        Like findLike = likeRepository.findByUserIdAndCommentId(userId, commentId);
+        if(findLike != null) {
+            throw new CustomException("Like is duplicate!",HttpStatus.BAD_REQUEST);
+        }
+
         Like like = Like.builder()
                 .createAt(LocalDateTime.now())
                 .comment(comment)
@@ -64,7 +74,7 @@ public class LikeService implements ILikeService {
     }
 
     @Override
-    public ResponseEntity<?> deleteLike(long likeId) {
+    public ResponseEntity<?> unlike(long likeId) {
         Like like = likeRepository.findById(likeId).get();
 
         Post post = like.getPost();
@@ -77,15 +87,6 @@ public class LikeService implements ILikeService {
         }
 
         likeRepository.delete(like);
-        return ResponseEntity.ok(new Notice("Delete like of post is completed"));
+        return ResponseEntity.ok(new Notice("Delete like is completed"));
     }
-
-//    @Override
-//    public ResponseEntity<?> deleteLikeComment(long commentId, long userId) {
-//        Like comment = commentRepository.findById(commentId)
-//                .orElseThrow(()->new CustomException("The comment in not found", HttpStatus.NOT_FOUND));
-//
-//        likeRepository.delete(comment);
-//        return ResponseEntity.ok(new Notice("Delete like of post is completed"));
-//    }
 }

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,16 +26,16 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
-@Component
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    JwtService jwtService;
-    UserDetailsService userDetailsService;
-    HandlerExceptionResolver resolver;
+    @Autowired
+    private JwtService jwtService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
-        this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    private final HandlerExceptionResolver resolver;
+
+    public JwtAuthenticationFilter(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
         this.resolver = resolver;
     }
 
@@ -64,8 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        }catch (CustomException | ExpiredJwtException | MalformedJwtException |
-                SignatureException | IllegalArgumentException e){
+        }catch (CustomException | ExpiredJwtException |  MalformedJwtException | SignatureException | IllegalArgumentException e){
             resolver.resolveException(request, response, null, e);
         }
 

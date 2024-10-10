@@ -3,7 +3,6 @@ package com.hoanghaidang.social_network.exception;
 import com.hoanghaidang.social_network.entity.Notice;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

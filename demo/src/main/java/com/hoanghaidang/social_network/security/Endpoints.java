@@ -25,8 +25,8 @@ public class Endpoints {
             "/api/friend_ship/send_request",
             "/api/post/create/user/*",
             "/api/comment/user/*/post/*",
-            "/api/like/user/*/post/*",
-            "/api/like/user/*/comment/*",
+            "/api/like/like_post",
+            "/api/like/like_comment",
             "/api/upload",
     };
 
@@ -46,6 +46,6 @@ public class Endpoints {
             "/api/friend_ship/delete/*",
             "/api/post/delete/*",
             "/api/comment/delete/*",
-            "/api/like/delete/*"
+            "/api/like/unlike/*"
     };
 }

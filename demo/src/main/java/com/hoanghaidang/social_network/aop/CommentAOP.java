@@ -33,9 +33,9 @@ public class CommentAOP {
 
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.createComment(..)) && args(..,userId,postId,commentDto)", argNames = "userId,postId,commentDto")
-    public void hasAccess(long userId, long postId,CommentDto commentDto) throws AccessDeniedException {
-        User user = userRepository.findUserById(userId)
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.CommentController.createComment(..)) && args(..,commentDto)")
+    public void hasAccess(CommentDto commentDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(commentDto.getUserId())
                 .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         if (securityUtils.hasNotAccessByUserId(user.getId())) {

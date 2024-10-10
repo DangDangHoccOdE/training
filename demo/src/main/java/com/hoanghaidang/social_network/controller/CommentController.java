@@ -28,11 +28,9 @@ public class CommentController {
     CommentService commentService;
 
     @Operation(summary = "Create Comment", description = "Create Comment")
-    @PostMapping("/user/{userId}/post/{postId}")
-    public ResponseEntity<?> createComment(@PathVariable("userId") long userId,
-                                           @PathVariable("postId") long postId,
-                                           @Validated @RequestBody CommentDto commentDto) {
-        return commentService.createComment(userId,postId,commentDto);
+    @PostMapping("comment_post")
+    public ResponseEntity<?> createComment(@Validated @RequestBody CommentDto commentDto) {
+        return commentService.createComment(commentDto.getUserId(),commentDto.getPostId(),commentDto);
     }
 
     @Operation(summary = "Edit Comment", description = "Edit Comment")

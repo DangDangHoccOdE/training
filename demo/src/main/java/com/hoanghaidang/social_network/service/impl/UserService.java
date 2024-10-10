@@ -10,6 +10,7 @@ import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.service.inter.IEmailService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
+import com.hoanghaidang.social_network.utils.ConvertStringToDate;
 import com.hoanghaidang.social_network.utils.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -67,7 +68,7 @@ public class UserService implements IUserService {
                     .lastName(registrationDto.getLastName())
                     .gender(registrationDto.getGender())
                     .roles(role)
-                    .dateOfBirth(registrationDto.getDateOfBirth())
+                    .dateOfBirth(ConvertStringToDate.convert(registrationDto.getDateOfBirth()))
                     .email(registrationDto.getEmail())
                     .password(bCryptPasswordEncoder.encode(registrationDto.getPassword()))
                     .isActive(false)
@@ -148,7 +149,7 @@ public class UserService implements IUserService {
         user.setLastName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setJob(userDto.getJob());
-        user.setDateOfBirth(userDto.getDateOfBirth());
+        user.setDateOfBirth(ConvertStringToDate.convert(userDto.getDateOfBirth()));
         user.setGender(userDto.getGender());
         user.setAddress(userDto.getAddress());
         user.setAvatar(userDto.getAvatar());

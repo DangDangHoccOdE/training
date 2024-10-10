@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.service.impl;
 
+import com.hoanghaidang.social_network.dto.UploadImageResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -14,6 +15,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +30,7 @@ public class ImageService {
         }
 
         // Dùng StringBuilder để lưu các đường dẫn ảnh sau khi upload thành công
-        StringBuilder imageUrls = new StringBuilder();
+        List<String>imageUrls = new ArrayList<>();
 
         for (MultipartFile file : files) {
             // Kiểm tra nếu file trống
@@ -57,7 +59,7 @@ public class ImageService {
                 String imageUrl = "/uploads/" + fileName;
 
                 // Thêm đường dẫn vào StringBuilder
-                imageUrls.append(imageUrl).append("\n");
+                imageUrls.add(imageUrl);
 
             } catch (IOException e) {
                 return new ResponseEntity<>("An error occurred when uploading one of the files", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -65,7 +67,7 @@ public class ImageService {
         }
 
         // Trả về danh sách đường dẫn các ảnh đã upload thành công
-        return ResponseEntity.status(HttpStatus.OK).body("Upload images completed: \n" + imageUrls.toString());
+        return ResponseEntity.status(HttpStatus.OK).body(UploadImageResponse.builder().images(imageUrls).build());
     }
 
     private boolean isImage(String contentType) {

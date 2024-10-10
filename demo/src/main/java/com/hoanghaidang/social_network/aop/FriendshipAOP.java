@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.aop;
 
 import com.hoanghaidang.social_network.dao.FriendShipRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.FriendshipDto;
 import com.hoanghaidang.social_network.entity.FriendShip;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -28,9 +29,14 @@ public class FriendshipAOP {
         this.securityUtils = securityUtils;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.FriendshipController.sendFriendRequest(..)) && args(..,senderId,receiverId)", argNames = "senderId,receiverId")
-    public void hasAccessSendFriendship(long senderId,long receiverId) throws AccessDeniedException {
-        User user = userRepository.findUserById(senderId).get();
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.FriendshipController.sendFriendRequest(..)) && args(..,friendshipDto)")
+    public void hasAccessSendFriendship(FriendshipDto friendshipDto) throws AccessDeniedException {
+        long senderId = friendshipDto.getSenderId();
+        long receiverId = friendshipDto.getReceiverId();
+
+        User user = userRepository.findUserById(friendshipDto.getSenderId())
+                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+
         if (securityUtils.hasNotAccessByUserId(user.getId()) || senderId == receiverId) {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }

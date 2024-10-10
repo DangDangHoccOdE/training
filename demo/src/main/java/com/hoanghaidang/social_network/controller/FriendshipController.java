@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.controller;
 
+import com.hoanghaidang.social_network.dto.FriendshipDto;
 import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,8 +21,8 @@ public class FriendshipController {
 
     @Operation(summary = "Send Friendship", description = "Send Friendship")
     @PostMapping("/send_request")
-    public ResponseEntity<?> sendFriendRequest(@RequestParam Long senderId,@RequestParam Long receiverId){
-        return iFriendShipService.sendFriendRequest(senderId,receiverId);
+    public ResponseEntity<?> sendFriendRequest(@Validated @RequestBody FriendshipDto friendshipDto){
+        return iFriendShipService.sendFriendRequest(friendshipDto.getSenderId(),friendshipDto.getReceiverId());
     }
 
     @Operation(summary = "Accept Friendship", description = "Accept Friendship")

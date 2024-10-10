@@ -1,13 +1,10 @@
 package com.hoanghaidang.social_network.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hoanghaidang.social_network.annotation.ValidDirectory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.sql.Date;
 
 @Data
 @AllArgsConstructor
@@ -28,9 +25,8 @@ public class UserDto {
     private String gender;
 
     @NotNull(message = "Date of birth cannot be null")
-    @Past(message = "Date of birth must be a date in the past")
-    @JsonFormat(pattern = "dd/MM/yyyy")
-    private Date dateOfBirth;
+    @Pattern(regexp = "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\\d{2}$",message = "Date is not format dd/MM/yyyy")
+    private String dateOfBirth;
 
     @Size(max = 100, message = "Job must not exceed 100 characters")
     private String job;

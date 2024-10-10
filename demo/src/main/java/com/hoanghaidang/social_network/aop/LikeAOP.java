@@ -1,11 +1,9 @@
 package com.hoanghaidang.social_network.aop;
 
-import com.hoanghaidang.social_network.dao.CommentRepository;
 import com.hoanghaidang.social_network.dao.LikeRepository;
-import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.CommentDto;
-import com.hoanghaidang.social_network.entity.Comment;
+import com.hoanghaidang.social_network.dto.LikeCommentDto;
+import com.hoanghaidang.social_network.dto.LikePostDto;
 import com.hoanghaidang.social_network.entity.Like;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -26,23 +24,18 @@ public class LikeAOP {
     static final String ACCESS_DENIED_MESSAGE = "You do not have access!";
     UserRepository userRepository;
     SecurityUtils securityUtils;
-    CommentRepository commentRepository;
-    PostRepository postRepository;
     private final LikeRepository likeRepository;
 
     @Autowired
-    public LikeAOP(UserRepository userRepository, SecurityUtils securityUtils, CommentRepository commentRepository, PostRepository postRepository,
-                   LikeRepository likeRepository) {
+    public LikeAOP(UserRepository userRepository, SecurityUtils securityUtils,LikeRepository likeRepository) {
         this.userRepository = userRepository;
         this.securityUtils = securityUtils;
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
         this.likeRepository = likeRepository;
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likePost(..)) && args(..,userId,postId)", argNames = "userId,postId")
-    public void hasAccessLikePost(long userId, long postId) throws AccessDeniedException {
-        User user = userRepository.findUserById(userId)
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likePost(..)) && args(..,likePostDto)")
+    public void hasAccessLikePost(LikePostDto likePostDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(likePostDto.getUserId())
                 .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
@@ -50,9 +43,9 @@ public class LikeAOP {
         }
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likeComment(..)) && args(..,userId,commentId)", argNames = "userId,commentId")
-    public void hasAccessLikeComment(long userId,long commentId) throws AccessDeniedException {
-        User user = userRepository.findUserById(userId)
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.likeComment(..)) && args(..,likeCommentDto)")
+    public void hasAccessLikeComment(LikeCommentDto likeCommentDto) throws AccessDeniedException {
+        User user = userRepository.findUserById(likeCommentDto.getUserId())
                 .orElseThrow(()-> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         if (securityUtils.hasNotAccessByUserId(user.getId())) {
@@ -60,7 +53,7 @@ public class LikeAOP {
         }
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.deleteLike(..)) && args(..,likeId)")
+    @Before(value = "execution(* com.hoanghaidang.social_network.controller.LikeController.unlike(..)) && args(..,likeId)")
     public void hasAccess(long likeId) throws AccessDeniedException {
         Like like = likeRepository.findById(likeId)
                 .orElseThrow(()->new CustomException("Like not found", HttpStatus.NOT_FOUND));
