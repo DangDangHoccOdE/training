@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,18 +43,22 @@ public class Post {
     @Column(name = "comment_count")
     private long commentCount=0;
 
+    @JsonIgnore
     @ElementCollection
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "image_path")
     private List<String> image;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH,CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST})
     @JoinColumn(name = "user_id")
     private User user;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
     private List<Comment> comments;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
     private List<Like> likes;
 }

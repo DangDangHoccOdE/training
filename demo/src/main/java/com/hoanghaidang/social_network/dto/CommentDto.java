@@ -9,9 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class CommentDto {
-    @NotNull(message = "UserId is required")
-    private long userId;
-
     @NotNull(message = "PostId is required")
     private long postId;
 

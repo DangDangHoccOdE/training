@@ -35,12 +35,12 @@ public class UserAOP {
         }
     }
 
-    @Before(value = "execution(* com.hoanghaidang.social_network.controller.UserController.report(..)) && args(..,email)")
-    public void hasAccessUpdateProfile(String email) throws AccessDeniedException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
-        if (securityUtils.hasNotAccessByUserId(user.getId())) {
-            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
-        }
-    }
+//    @Before(value = "execution(* com.hoanghaidang.social_network.controller.UserController.report(..)) && args(..,email)")
+//    public void hasAccessUpdateProfile(String email) throws AccessDeniedException {
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+//        if (securityUtils.hasNotAccessByUserId(user.getId())) {
+//            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+//        }
+//    }
 }

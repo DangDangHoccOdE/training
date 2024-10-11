@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,11 +28,10 @@ public class UserController {
     private IUserService iUserService;
 
     @Operation(summary = "Report User",description = "Report User during a week")
-    @GetMapping("/report/{email}")
-    public ResponseEntity<?> report(@PathVariable String email) throws IOException {
-        return iUserService.report(email);
+    @GetMapping("/report")
+    public ResponseEntity<?> report(Authentication authentication) throws IOException {
+        return iUserService.report(authentication.getName());
     }
-
 
     @Operation(summary = "Forget Password", description = "Forget Password")
     @PostMapping("/forget_password")
@@ -47,8 +47,8 @@ public class UserController {
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
     @PutMapping("/update_profile/{email}")
-    public ResponseEntity<?> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto) throws Exception{
-        return iUserService.updateProfile(email,userDto);
+    public ResponseEntity<?> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
+        return iUserService.updateProfile(email,userDto,authentication);
     }
 
     @Operation(summary = "Login User", description = "Login User")

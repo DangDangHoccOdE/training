@@ -11,7 +11,6 @@ import com.hoanghaidang.social_network.service.inter.IPostService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,8 +23,12 @@ import java.time.LocalDateTime;
 public class PostService implements IPostService {
     PostRepository postRepository;
     UserRepository userRepository;
+
     @Override
     public ResponseEntity<?> createPost(PostDto postDto) {
+        if(postDto.getContent()==null && postDto.getTitle() == null && postDto.getImage() == null){
+            throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
+        }
         User user = userRepository.findUserById(postDto.getUserId()).get();
 
         Post post = Post.builder()
@@ -33,8 +36,6 @@ public class PostService implements IPostService {
                 .content(postDto.getContent())
                 .createAt(LocalDateTime.now())
                 .status(postDto.getStatus())
-                .likeCount(0)
-                .commentCount(0)
                 .image(postDto.getImage())
                 .user(user)
                 .build();

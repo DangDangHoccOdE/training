@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,19 +30,21 @@ public class CommentController {
 
     @Operation(summary = "Create Comment", description = "Create Comment")
     @PostMapping("comment_post")
-    public ResponseEntity<?> createComment(@Validated @RequestBody CommentDto commentDto) {
-        return commentService.createComment(commentDto.getUserId(),commentDto.getPostId(),commentDto);
+    public ResponseEntity<?> createComment(Authentication authentication, @Validated @RequestBody CommentDto commentDto) {
+        return commentService.createComment(authentication,commentDto.getPostId(),commentDto);
     }
 
     @Operation(summary = "Edit Comment", description = "Edit Comment")
     @PutMapping("/edit/{id}")
-    public ResponseEntity<?> editComment(@PathVariable Long id,@Validated @RequestBody CommentDto commentDto) {
-        return commentService.editComment(id, commentDto);
+    public ResponseEntity<?> editComment(@PathVariable Long id,
+                                         @Validated @RequestBody CommentDto commentDto,
+                                         Authentication authentication) {
+        return commentService.editComment(authentication,id, commentDto);
     }
 
     @Operation(summary = "Delete Comment", description = "Delete Comment")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long id) {
-        return commentService.deleteComment(id);
+    public ResponseEntity<?> deleteComment(Authentication authentication,@PathVariable Long id) {
+        return commentService.deleteComment(authentication,id);
     }
 }

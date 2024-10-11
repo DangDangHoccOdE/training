@@ -21,6 +21,9 @@ spring:
           starttls:
             enable: true
     username: danghoangtest1@gmail.com
+  web:
+    resources:
+      static-locations: file:./uploads/
 
   data:
     redis:

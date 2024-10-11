@@ -14,6 +14,7 @@ public class Endpoints {
     public static final String[] PUBLIC_GET_ENDPOINTS={
             "/v3/api-docs/**",
             "/swagger-ui/**", "/swagger-ui.html",
+            "/*"
     };
 
 
@@ -34,14 +35,15 @@ public class Endpoints {
     public static final String[] USER_PUT_ENDPOINTS={
             "/api/friend_ship/accept/*",
             "/api/friend_ship/decline/*",
-            "/api/user/update_profile/*",
+            "/api/user/update_profile",
             "/api/post/edit/*",
             "/api/comment/edit/*",
     };
 
     public static final String[] USER_GET_ENDPOINTS={
             "/api/download",
-            "/api/user/report/*"
+            "/api/user/report/*",
+            "/api/timeline"
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={

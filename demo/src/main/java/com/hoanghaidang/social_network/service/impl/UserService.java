@@ -65,8 +65,8 @@ public class UserService implements IUserService {
 
         long userId = user.getId();
         int postCount = postRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
-        int friendShipSenderCount = friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(userId,"accept",startDate,endDate);
-        int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,"accept",startDate,endDate);
+        int friendShipSenderCount = friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(userId,"accepted",startDate,endDate);
+        int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,"accepted",startDate,endDate);
         int newFriendshipCount = friendShipSenderCount + friendShipReceiverCount;
         int newCommentCount = commentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
         int likeCount = likeRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
@@ -183,13 +183,20 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> updateProfile(String email,UserDto userDto) {
-        User user = userRepository.findByEmail(email).get();
+    public ResponseEntity<?> updateProfile(String email,UserDto userDto,Authentication authentication) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
 
         if(!user.isActive()){
             throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
         }
 
+        User auth =  userRepository.findByEmail(authentication.getName())
+                        .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+
+        if(auth!=user){
+            throw new CustomException("Username or password is incorrect",HttpStatus.BAD_REQUEST);
+        }
         user.setLastName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setJob(userDto.getJob());
