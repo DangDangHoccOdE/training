@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,20 +24,22 @@ public class LikeController {
     @Operation(summary = "Like post", description = "Like post")
     @PostMapping("/like_post")
     public ResponseEntity<?> likePost(
-            @Validated @RequestBody LikePostDto likePostDto){
-        return iLikeService.likePost(likePostDto.getUserId(),likePostDto.getPostId());
+            @Validated @RequestBody LikePostDto likePostDto,
+            Authentication authentication){
+        return iLikeService.likePost(authentication,likePostDto.getPostId());
     }
 
     @Operation(summary = "Like comment", description = "Like comment")
     @PostMapping("/like_comment")
     public ResponseEntity<?> likeComment(
-            @Validated @RequestBody LikeCommentDto likeCommentDto){
-        return iLikeService.likeComment(likeCommentDto.getUserId(),likeCommentDto.getPostId());
+            @Validated @RequestBody LikeCommentDto likeCommentDto,
+            Authentication authentication){
+        return iLikeService.likeComment(authentication,likeCommentDto.getCommentId());
     }
 
     @Operation(summary = "Unlike", description = "Unlike")
     @DeleteMapping("/unlike/{id}")
-    public ResponseEntity<?> unlike(@PathVariable("id") long id){
-        return iLikeService.unlike(id);
+    public ResponseEntity<?> unlike(@PathVariable("id") long id,Authentication authentication){
+        return iLikeService.unlike(authentication,id);
     }
 }

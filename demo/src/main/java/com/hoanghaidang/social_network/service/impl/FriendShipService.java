@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,35 +21,57 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FriendShipService implements IFriendShipService {
     FriendShipRepository friendShipRepository;
     UserRepository userRepository;
 
+    private User getAuthenticatedUser(Authentication authentication) {
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+    }
+
+    private FriendShip getFriendShip(Long friendShipId) {
+        return friendShipRepository.findById(friendShipId)
+                .orElseThrow(() -> new CustomException("Friendship not found", HttpStatus.NOT_FOUND));
+    }
+
+    private void checkFriendShipAccess(User user, FriendShip friendShip) {
+        if (user != friendShip.getUser2() && user != friendShip.getUser1()) {
+            throw new AccessDeniedException("You do have not access");
+        }
+    }
+
+    private void checkPendingStatus(FriendShip friendShip) {
+        if (!"pending".equals(friendShip.getStatus())) {
+            throw new CustomException("Operation failed, friend request not found", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @Override
-    public ResponseEntity<?> sendFriendRequest(Long senderId, Long receiverId) {
-        User sender = userRepository.findUserById(senderId)
-                .orElseThrow(()->new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> sendFriendRequest(Authentication authentication, Long receiverId) {
+        User sender = getAuthenticatedUser(authentication);
         User receiver = userRepository.findUserById(receiverId)
-                .orElseThrow(()-> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
 
-        Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender,receiver);
-        Optional<FriendShip> existingFriendship2 = friendShipRepository.findByUser1AndUser2(receiver,sender);
-        if(existingFriendship2.isPresent()){
-            throw new CustomException("Send duplicate invitations!",HttpStatus.BAD_REQUEST);
-        } // check xem có bị 2 người gửi kết bạn cho nhau k
+        if (sender == receiver) {
+            throw new AccessDeniedException("You do have not access");
+        }
 
-        FriendShip friendship = new FriendShip();
+        Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender, receiver);
+        Optional<FriendShip> existingFriendship2 = friendShipRepository.findByUser1AndUser2(receiver, sender);
 
-        if (existingFriendship1.isPresent()) {
-            // Nếu đã từ chối trước đó, cập nhật lại thành pending
-            friendship = existingFriendship1.get();
+        if ((existingFriendship2.isPresent() && existingFriendship2.get().getStatus().equals("pending"))
+            || (existingFriendship1.isPresent() && existingFriendship1.get().getStatus().equals("pending"))
+        ) {
+            throw new CustomException("Send duplicate invitations!", HttpStatus.BAD_REQUEST);
+        }
+
+        FriendShip friendship = existingFriendship1.orElse(new FriendShip());
+
+        if (existingFriendship1.isPresent() && "declined".equals(friendship.getStatus())) {
             friendship.setUpdateAt(LocalDateTime.now());
-            if (!"declined".equals(friendship.getStatus())) {
-                throw new CustomException("Friendship request already exists with status: " + friendship.getStatus(),HttpStatus.BAD_REQUEST);
-            }
         } else {
-            // Nếu chưa có mối quan hệ nào, tạo lời mời mới
             friendship.setUser1(sender);
             friendship.setUser2(receiver);
             friendship.setCreateAt(LocalDateTime.now());
@@ -59,12 +83,11 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> acceptFriendRequest(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
-
-        if(!friendShip.getStatus().equals("pending")){
-            throw new CustomException("Operation failed, friend request not found",HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> acceptFriendRequest(Authentication authentication, Long friendShipId) {
+        FriendShip friendShip = getFriendShip(friendShipId);
+        User auth = getAuthenticatedUser(authentication);
+        checkFriendShipAccess(auth, friendShip);
+        checkPendingStatus(friendShip);
 
         friendShip.setStatus("accepted");
         friendShipRepository.save(friendShip);
@@ -72,26 +95,29 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> declineFriendShip(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
-
-        if(!friendShip.getStatus().equals("pending")){
-            throw new CustomException("Operation failed, friend request not found",HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> declineFriendShip(Authentication authentication, Long friendShipId) {
+        FriendShip friendShip = getFriendShip(friendShipId);
+        User auth = getAuthenticatedUser(authentication);
+        checkFriendShipAccess(auth, friendShip);
+        checkPendingStatus(friendShip);
 
         friendShip.setStatus("declined");
         friendShipRepository.save(friendShip);
-        return ResponseEntity.ok(new Notice("Unfriending has been completed"));    }
+        return ResponseEntity.ok(new Notice("Friendship declined successfully"));
+    }
 
     @Override
-    public ResponseEntity<?> deleteFriendShip(Long friendShipId) {
-        FriendShip friendShip = friendShipRepository.findById(friendShipId).get();
+    public ResponseEntity<?> deleteFriendShip(Authentication authentication, Long friendShipId) {
+        FriendShip friendShip = getFriendShip(friendShipId);
+        User auth = getAuthenticatedUser(authentication);
+        checkFriendShipAccess(auth, friendShip);
 
-        if(!friendShip.getStatus().equals("accepted")){
-            throw new CustomException("Operation failed, Cannot unfriend",HttpStatus.BAD_REQUEST);
+        if (!"accepted".equals(friendShip.getStatus())) {
+            throw new CustomException("Operation failed, Cannot unfriend", HttpStatus.BAD_REQUEST);
         }
 
         friendShipRepository.delete(friendShip);
         return ResponseEntity.ok(new Notice("Unfriended successfully"));
     }
 }
+

@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import java.io.IOException;
 
 public interface IUserService {
+    ResponseEntity<?> refreshToken(String refreshToken);
     ResponseEntity<?> registerUser(RegistrationDto registrationDto) throws Exception;
     ResponseEntity<?> activeUser(String email);
     ResponseEntity<?> login(LoginDto loginDto);

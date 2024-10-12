@@ -1,9 +1,10 @@
 package com.hoanghaidang.social_network.service.inter;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 public interface ILikeService {
-    ResponseEntity<?> likePost(long userId, long postId);
-    ResponseEntity<?> likeComment(long userId, long commentId);
-    ResponseEntity<?> unlike(long likeId);
+    ResponseEntity<?> likePost(Authentication authentication, long postId);
+    ResponseEntity<?> likeComment(Authentication authentication, long commentId);
+    ResponseEntity<?> unlike(Authentication authentication,long likeId);
 }

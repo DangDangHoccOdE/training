@@ -4,6 +4,7 @@ import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -23,6 +24,7 @@ import java.util.function.Function;
 @Component
 public class JwtService {
     public static final String SECRET_ACCESS_TOKEN = "dsafwerwdrwerwer01234567894234234rfsdfsdfsdfsdvfuyuytuytu0123456789";
+    public static final String SECRET_REFRESH_TOKEN = "EUOIQWEUQWEJQOWIDKJASDNASDNM1231290KCMASKMDQSLKMDK323I912I3KMCADASD";
     private final UserRepository userRepository;
 
     @Autowired
@@ -49,56 +51,75 @@ public class JwtService {
         }
 
         claim.put("isUser", isUser);
-        return createToken(claim, email);
+        // 2 hours
+        long ACCESS_TOKEN_EXPIRATION = 2 * 60 * 60 * 1000; // 2h
+        return createToken(claim, email, ACCESS_TOKEN_EXPIRATION,SECRET_ACCESS_TOKEN);
     }
 
-    private String createToken(Map<String, Object> claim, String email){
+    private String createToken(Map<String, Object> claim, String email,long expiration,String secret){
         return Jwts.builder()
                 .setClaims(claim)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 360000000L)) // 100 hour expiration
-                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignKey(secret), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    private Key getSignKey(){
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_ACCESS_TOKEN);
+    public String generateRefreshToken(String email){
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("type","refreshToken");
+        // 7 dáys
+        long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+        return createToken(claims,email, REFRESH_TOKEN_EXPIRATION,SECRET_REFRESH_TOKEN);
+    }
+
+    private Key getSignKey(String secret){
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private Claims extractAllClaims(String token){
+    private Claims extractAllClaims(String token,String secret){
         return Jwts.parserBuilder()
-                .setSigningKey(getSignKey())
+                .setSigningKey(getSignKey(secret))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    public <T> T extractClaims(String token, Function<Claims,T> claimsFunction){
-        Claims claims = extractAllClaims(token);
+    public <T> T extractClaims(String token, Function<Claims,T> claimsFunction,String secret){
+        Claims claims = extractAllClaims(token,secret);
         return claimsFunction.apply(claims);
     }
 
-    public String extractEmail(String token){
-        return extractClaims(token, Claims::getSubject);
+    public String extractEmail(String token,String secret){
+        return extractClaims(token, Claims::getSubject,secret);
     }
 
-    public Date extractExpiration(String token){
-        return extractClaims(token, Claims::getExpiration);
+    public Date extractExpiration(String token,String secret){
+        return extractClaims(token, Claims::getExpiration,secret);
     }
 
-    private Boolean isTokenExpired(String token){
-        return extractExpiration(token).before(new Date());
+    private Boolean isTokenExpired(String token,String secret){
+        return extractExpiration(token,secret).before(new Date());
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, UserDetails userDetails,String secret) {
         try {
-            String email = extractEmail(token);
-            return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+            String email = extractEmail(token,secret);
+            return (email.equals(userDetails.getUsername()) && !isTokenExpired(token,secret));
         } catch (SignatureException e) {
             System.out.println("Invalid JWT signature: " + e.getMessage());
             throw e;
+        }
+    }
+
+    public Boolean validateRefreshToken(String refreshToken, String secret) {
+        try {
+            extractAllClaims(refreshToken, secret);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
         }
     }
 }

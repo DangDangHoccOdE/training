@@ -12,9 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 public class PostDto {
-    @NotNull(message = "UserId is required")
-    private long userId;
-
     @Size(max = 255,message = "Title must not exceed 255 characters")
     private String title;
 

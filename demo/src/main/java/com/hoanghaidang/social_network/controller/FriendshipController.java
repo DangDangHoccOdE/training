@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,25 +22,25 @@ public class FriendshipController {
 
     @Operation(summary = "Send Friendship", description = "Send Friendship")
     @PostMapping("/send_request")
-    public ResponseEntity<?> sendFriendRequest(@Validated @RequestBody FriendshipDto friendshipDto){
-        return iFriendShipService.sendFriendRequest(friendshipDto.getSenderId(),friendshipDto.getReceiverId());
+    public ResponseEntity<?> sendFriendRequest(@Validated @RequestBody FriendshipDto friendshipDto, Authentication authentication){
+        return iFriendShipService.sendFriendRequest(authentication,friendshipDto.getReceiverId());
     }
 
     @Operation(summary = "Accept Friendship", description = "Accept Friendship")
     @PutMapping("/accept/{friendshipId}")
-    public ResponseEntity<?> acceptFriend(@PathVariable("friendshipId") Long friendshipId){
-        return iFriendShipService.acceptFriendRequest(friendshipId);
+    public ResponseEntity<?> acceptFriend(@PathVariable("friendshipId") Long friendshipId,Authentication authentication){
+        return iFriendShipService.acceptFriendRequest(authentication,friendshipId);
     }
 
     @Operation(summary = "Decline Friendship", description = "Decline Friendship")
     @PutMapping("/decline/{friendshipId}")
-    public ResponseEntity<?> declineFriendship(@PathVariable("friendshipId") Long friendshipId){
-        return iFriendShipService.declineFriendShip(friendshipId);
+    public ResponseEntity<?> declineFriendship(@PathVariable("friendshipId") Long friendshipId,Authentication authentication){
+        return iFriendShipService.declineFriendShip(authentication,friendshipId);
     }
 
     @Operation(summary = "Delete Friendship", description = "Delete Friendship")
     @DeleteMapping("/delete/{friendshipId}")
-    public ResponseEntity<?> deleteFriendship(@PathVariable("friendshipId") Long friendshipId){
-        return iFriendShipService.deleteFriendShip(friendshipId);
+    public ResponseEntity<?> deleteFriendship(@PathVariable("friendshipId") Long friendshipId,Authentication authentication){
+        return iFriendShipService.deleteFriendShip(authentication,friendshipId);
     }
 }

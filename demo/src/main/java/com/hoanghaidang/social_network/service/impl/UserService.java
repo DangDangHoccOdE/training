@@ -1,10 +1,7 @@
 package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.*;
-import com.hoanghaidang.social_network.dto.LoginDto;
-import com.hoanghaidang.social_network.dto.RegistrationDto;
-import com.hoanghaidang.social_network.dto.ReportDto;
-import com.hoanghaidang.social_network.dto.UserDto;
+import com.hoanghaidang.social_network.dto.*;
 
 import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -23,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,8 +54,32 @@ public class UserService implements IUserService {
     private final LikeRepository likeRepository;
 
     @Override
+    public ResponseEntity<?> refreshToken(String refreshToken) {
+        if(refreshToken!=null && refreshToken.startsWith("Refresh-Token ")){
+            refreshToken = refreshToken.substring(14);
+        }
+
+        if(refreshToken!= null && jwtService.validateRefreshToken(refreshToken,JwtService.SECRET_REFRESH_TOKEN)){
+            String email = jwtService.extractEmail(refreshToken,JwtService.SECRET_REFRESH_TOKEN);
+            if(email!=null){
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+                if(user.getRefreshToken().equals(refreshToken)){
+                    String newAccessToken = jwtService.generateToken(email);
+                    String newRefreshToken = jwtService.generateRefreshToken(email);
+                    user.setRefreshToken(newRefreshToken);
+                    userRepository.save(user);
+                    return ResponseEntity.ok(new JwtResponse(newAccessToken,newRefreshToken));
+                }
+            }
+        }
+        return ResponseEntity.badRequest().body(new Notice("RefreshToken is not valid"));
+    }
+
+    @Override
     public ResponseEntity<?> report(String email) throws IOException {
-        User user = userRepository.findByEmail(email).get();
+        User user = userRepository.findByEmail(email)
+              .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
 
         // Lấy ngày tuần trước:
         LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
@@ -169,15 +191,18 @@ public class UserService implements IUserService {
     }
 
     public ResponseEntity<?> validOtp(String otp,String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+
         // Get otp from redis
         String cacheOtp = stringRedisTemplate.opsForValue().get(email);
         if(cacheOtp != null && cacheOtp.equals(otp)){
             String token  = jwtService.generateToken(email);
-            return ResponseEntity.ok(new Notice("Token: "+token));
+            String refreshToken = jwtService.generateRefreshToken(email);
+            user.setRefreshToken(refreshToken);
+            userRepository.save(user);
+            return ResponseEntity.ok(new JwtResponse(token,refreshToken));
         }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
 
         return ResponseEntity.badRequest().body(new Notice("Otp is not correct!"));
     }
@@ -195,7 +220,7 @@ public class UserService implements IUserService {
                         .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
 
         if(auth!=user){
-            throw new CustomException("Username or password is incorrect",HttpStatus.BAD_REQUEST);
+            throw new AccessDeniedException("You have not access");
         }
         user.setLastName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
@@ -228,7 +253,7 @@ public class UserService implements IUserService {
             throw new CustomException("Token is invalid or expired",HttpStatus.UNAUTHORIZED);
         }
 
-        String emailToken = jwtService.extractEmail(token);
+        String emailToken = jwtService.extractEmail(email,JwtService.SECRET_ACCESS_TOKEN);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
 

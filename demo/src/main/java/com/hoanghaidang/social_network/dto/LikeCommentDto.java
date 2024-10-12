@@ -7,9 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LikeCommentDto {
-    @NotNull(message = "UserId is required")
-    private long userId;
-
     @NotNull(message = "PostId is required")
-    private long postId;
+    private long commentId;
 }

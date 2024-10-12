@@ -1,16 +1,8 @@
 package com.hoanghaidang.social_network.controller;
 
-
 import com.hoanghaidang.social_network.dto.*;
-import com.hoanghaidang.social_network.entity.User;
-import com.hoanghaidang.social_network.exception.ErrorDetails;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +18,12 @@ import java.io.IOException;
 public class UserController {
     @Autowired
     private IUserService iUserService;
+
+    @Operation(summary = "Refresh Token",description = "Refresh Token")
+    @PostMapping("/refreshToken")
+    public ResponseEntity<?> refreshToken(@RequestHeader String refreshToken){
+        return iUserService.refreshToken(refreshToken);
+    }
 
     @Operation(summary = "Report User",description = "Report User during a week")
     @GetMapping("/report")

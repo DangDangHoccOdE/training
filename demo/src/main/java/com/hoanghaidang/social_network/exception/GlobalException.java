@@ -3,6 +3,8 @@ package com.hoanghaidang.social_network.exception;
 import com.hoanghaidang.social_network.entity.Notice;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.security.SignatureException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -44,25 +45,31 @@ public class GlobalException extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ExpiredJwtException.class) // Token hết hạn
     public ResponseEntity<Notice> handleExpiredJwtException(ExpiredJwtException e){
         System.out.println("ExpiredJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token đã hết hạn"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is expired"));
     }
 
+    @ExceptionHandler(UnsupportedJwtException.class) // Token không hỗ trợ
+    public ResponseEntity<?> handleUnsupportedJwtException(UnsupportedJwtException e){
+        System.out.println("UnsupportedJwtException: "+e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is unsupported"));
+    }
     @ExceptionHandler(MalformedJwtException.class) // token không đúng định dạng
     public ResponseEntity<?> handleMalformedJwtException(MalformedJwtException e){
         System.out.println("MalformedJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token không đúng định dạng"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is malformed"));
     }
     @ExceptionHandler(SignatureException.class) // Chữ ký token không đúng
     public ResponseEntity<?> handleSignatureException(SignatureException e){
         System.out.println("SignatureException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Chữ ký token không hợp lệ"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("SignatureToken is not valid"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class) // Token không hợp lệ
     public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
         System.out.println("IllegalArgumentException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token không hợp lệ"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is not valid"));
     }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(HttpStatus.BAD_REQUEST.value(),LocalDateTime.now(),

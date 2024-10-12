@@ -65,9 +65,8 @@ public class User {
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
     private List<Like> likes;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "account_id")
-//    private Account account;
+    @Column(name = "refreshToken")
+    private String refreshToken;
 
     @OneToMany(mappedBy = "user1",cascade = CascadeType.ALL)
     private List<FriendShip> friendShipsSent;
