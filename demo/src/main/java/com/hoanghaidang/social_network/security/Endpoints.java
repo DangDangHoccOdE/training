@@ -8,7 +8,6 @@ public class Endpoints {
             "/api/user/validate_otp",
             "/v3/api-docs/**",
             "/swagger-ui/**", "/swagger-ui.html",
-            "/api/user/refreshToken"
     };
 
     public static final String[] PUBLIC_GET_ENDPOINTS={
@@ -30,6 +29,7 @@ public class Endpoints {
             "/api/like/like_post",
             "/api/like/like_comment",
             "/api/upload",
+            "/api/user/refreshToken"
     };
 
     public static final String[] USER_PUT_ENDPOINTS={

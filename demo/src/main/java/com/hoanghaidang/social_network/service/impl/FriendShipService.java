@@ -10,6 +10,7 @@ import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,12 +29,12 @@ public class FriendShipService implements IFriendShipService {
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
     }
 
     private FriendShip getFriendShip(Long friendShipId) {
         return friendShipRepository.findById(friendShipId)
-                .orElseThrow(() -> new CustomException("Friendship not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("Friendship is not found", HttpStatus.NOT_FOUND));
     }
 
     private void checkFriendShipAccess(User user, FriendShip friendShip) {
@@ -49,10 +50,10 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> sendFriendRequest(Authentication authentication, Long receiverId) {
+    public ResponseEntity<Notice> sendFriendRequest(Authentication authentication, Long receiverId) {
         User sender = getAuthenticatedUser(authentication);
         User receiver = userRepository.findUserById(receiverId)
-                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         if (sender == receiver) {
             throw new AccessDeniedException("You do have not access");
@@ -83,7 +84,7 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> acceptFriendRequest(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<Notice> acceptFriendRequest(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
         checkFriendShipAccess(auth, friendShip);
@@ -95,7 +96,7 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> declineFriendShip(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<Notice> declineFriendShip(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
         checkFriendShipAccess(auth, friendShip);
@@ -107,7 +108,7 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<?> deleteFriendShip(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<Notice> deleteFriendShip(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
         checkFriendShipAccess(auth, friendShip);

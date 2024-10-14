@@ -9,7 +9,7 @@ import com.hoanghaidang.social_network.service.inter.IEmailService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import com.hoanghaidang.social_network.utils.ConvertStringToDate;
 import com.hoanghaidang.social_network.utils.ExcelGenerator;
-import com.hoanghaidang.social_network.utils.OtpGenerator;
+import com.hoanghaidang.social_network.utils.GetOtp;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +31,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -49,12 +46,15 @@ public class UserService implements IUserService {
    JwtService jwtService;
    StringRedisTemplate stringRedisTemplate;
    PostRepository postRepository;
-    private final FriendShipRepository friendShipRepository;
-    private final CommentRepository commentRepository;
-    private final LikeRepository likeRepository;
+   FriendShipRepository friendShipRepository;
+   CommentRepository commentRepository;
+   LikeRepository likeRepository;
 
     @Override
-    public ResponseEntity<?> refreshToken(String refreshToken) {
+    public ResponseEntity<?> refreshToken(Authentication authentication,String refreshToken) {
+        User auth =  userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
+
         if(refreshToken!=null && refreshToken.startsWith("Refresh-Token ")){
             refreshToken = refreshToken.substring(14);
         }
@@ -62,13 +62,17 @@ public class UserService implements IUserService {
         if(refreshToken!= null && jwtService.validateRefreshToken(refreshToken,JwtService.SECRET_REFRESH_TOKEN)){
             String email = jwtService.extractEmail(refreshToken,JwtService.SECRET_REFRESH_TOKEN);
             if(email!=null){
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
-                if(user.getRefreshToken().equals(refreshToken)){
+                if(!auth.getEmail().equals(email)){
+                    throw new AccessDeniedException("You have not access");
+                }
+
+                if(auth.getRefreshToken().equals(refreshToken)){
+                    Date issuedAt = jwtService.extractIssuedAt(refreshToken,JwtService.SECRET_REFRESH_TOKEN);
+
                     String newAccessToken = jwtService.generateToken(email);
-                    String newRefreshToken = jwtService.generateRefreshToken(email);
-                    user.setRefreshToken(newRefreshToken);
-                    userRepository.save(user);
+                    String newRefreshToken = jwtService.generateRefreshTokenWithIssuedAt(email,issuedAt);
+                    auth.setRefreshToken(newRefreshToken);
+                    userRepository.save(auth);
                     return ResponseEntity.ok(new JwtResponse(newAccessToken,newRefreshToken));
                 }
             }
@@ -79,7 +83,7 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<?> report(String email) throws IOException {
         User user = userRepository.findByEmail(email)
-              .orElseThrow(()-> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+              .orElseThrow(()-> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         // Lấy ngày tuần trước:
         LocalDateTime startDate = LocalDateTime.now().minusWeeks(1);
@@ -109,7 +113,7 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> registerUser(RegistrationDto registrationDto) throws Exception {
+    public ResponseEntity<Notice> registerUser(RegistrationDto registrationDto) {
         Optional<User> user = userRepository.findByEmail(registrationDto.getEmail());
         if(user.isPresent()){
             throw new CustomException("Email is exists",HttpStatus.BAD_REQUEST);
@@ -158,9 +162,9 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> activeUser(String email){
+    public ResponseEntity<Notice> activeUser(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("The user could not be found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         if(user.isActive()){
             throw new CustomException("User has been activated", HttpStatus.BAD_REQUEST);
@@ -171,13 +175,13 @@ public class UserService implements IUserService {
         return ResponseEntity.ok(new Notice("Active User completed"));
     }
 
-    public ResponseEntity<?> login(LoginDto loginDto){
+    public ResponseEntity<Notice> login(LoginDto loginDto){
           try{
               Authentication authentication = authenticationManager.authenticate(
                       new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
               if(authentication.isAuthenticated()){
-                  String otp = OtpGenerator.generateOtp(6); // 6 char
+                  String otp = GetOtp.generateOtp(6); // 6 char
 
                   // Save otp in redis with TTL 5min
                   stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
@@ -185,14 +189,13 @@ public class UserService implements IUserService {
               }
           }catch (AuthenticationException e){
               System.out.println(e.getMessage());
-              throw e;
           }
         return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
 
     public ResponseEntity<?> validOtp(String otp,String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+                .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         // Get otp from redis
         String cacheOtp = stringRedisTemplate.opsForValue().get(email);
@@ -201,6 +204,7 @@ public class UserService implements IUserService {
             String refreshToken = jwtService.generateRefreshToken(email);
             user.setRefreshToken(refreshToken);
             userRepository.save(user);
+            stringRedisTemplate.delete(email);
             return ResponseEntity.ok(new JwtResponse(token,refreshToken));
         }
 
@@ -208,16 +212,16 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> updateProfile(String email,UserDto userDto,Authentication authentication) {
+    public ResponseEntity<UserDto> updateProfile(String email,UserDto userDto,Authentication authentication) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+                .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         if(!user.isActive()){
             throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
         }
 
         User auth =  userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(()->new CustomException("User not found",HttpStatus.NOT_FOUND));
+                        .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         if(auth!=user){
             throw new AccessDeniedException("You have not access");
@@ -234,9 +238,9 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> forgetPassword(String email) {
+    public ResponseEntity<ApiResponse> forgetPassword(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()-> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
+                .orElseThrow(()-> new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         String token = jwtService.generateToken(user.getEmail());
         // Save token -> redis TTL about 5 min
@@ -246,7 +250,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<?> changePassword(String email,String token, String newPassword) {
+    public ResponseEntity<Notice> changePassword(String email,String token, String newPassword) {
         String tokenRedis = stringRedisTemplate.opsForValue().get(token);
 
         if (tokenRedis == null) {
@@ -255,7 +259,7 @@ public class UserService implements IUserService {
 
         String emailToken = jwtService.extractEmail(email,JwtService.SECRET_ACCESS_TOKEN);
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("The user could not be found",HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         if(!emailToken.equals(user.getEmail())){
             throw new CustomException("User information does not match",HttpStatus.BAD_REQUEST);

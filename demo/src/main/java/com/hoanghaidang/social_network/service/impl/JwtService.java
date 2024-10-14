@@ -15,10 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -69,9 +66,31 @@ public class JwtService {
     public String generateRefreshToken(String email){
         Map<String,Object> claims = new HashMap<>();
         claims.put("type","refreshToken");
+        claims.put("tokenId", UUID.randomUUID().toString()); // Thêm giá trị UUID ngẫu nhiên vào claims
+
         // 7 dáys
         long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days
         return createToken(claims,email, REFRESH_TOKEN_EXPIRATION,SECRET_REFRESH_TOKEN);
+    }
+
+    public Date extractIssuedAt(String token,String secret){
+        return extractClaims(token,Claims::getIssuedAt,secret);
+    }
+
+    public String generateRefreshTokenWithIssuedAt(String email, Date issuedAt) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refreshToken");
+        claims.put("tokenId", UUID.randomUUID().toString());
+
+        // 7 days expiration
+        long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(issuedAt)  // Sử dụng thời gian issuedAt cũ
+                .setExpiration(new Date(issuedAt.getTime() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(getSignKey(SECRET_REFRESH_TOKEN), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     private Key getSignKey(String secret){

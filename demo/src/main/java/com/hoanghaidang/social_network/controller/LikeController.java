@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.LikeCommentDto;
 import com.hoanghaidang.social_network.dto.LikePostDto;
+import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.ILikeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ public class LikeController {
 
     @Operation(summary = "Like post", description = "Like post")
     @PostMapping("/like_post")
-    public ResponseEntity<?> likePost(
+    public ResponseEntity<Notice> likePost(
             @Validated @RequestBody LikePostDto likePostDto,
             Authentication authentication){
         return iLikeService.likePost(authentication,likePostDto.getPostId());
@@ -31,7 +32,7 @@ public class LikeController {
 
     @Operation(summary = "Like comment", description = "Like comment")
     @PostMapping("/like_comment")
-    public ResponseEntity<?> likeComment(
+    public ResponseEntity<Notice> likeComment(
             @Validated @RequestBody LikeCommentDto likeCommentDto,
             Authentication authentication){
         return iLikeService.likeComment(authentication,likeCommentDto.getCommentId());
@@ -39,7 +40,7 @@ public class LikeController {
 
     @Operation(summary = "Unlike", description = "Unlike")
     @DeleteMapping("/unlike/{id}")
-    public ResponseEntity<?> unlike(@PathVariable("id") long id,Authentication authentication){
+    public ResponseEntity<Notice> unlike(@PathVariable("id") long id, Authentication authentication){
         return iLikeService.unlike(authentication,id);
     }
 }

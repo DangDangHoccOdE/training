@@ -1,14 +1,14 @@
 package com.hoanghaidang.social_network.dto;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.sql.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class RegistrationDto {
     @NotBlank(message = "First name is required")
     @Size(max = 20, message = "First name must not exceed 20 characters")

@@ -31,6 +31,6 @@ public class ImageUploadController {
     @Operation(summary = "Download", description = "Download")
     @GetMapping(value = "/download")
     public ResponseEntity<?> getImage(@RequestParam("filename") String filename) {
-        return imageService.getImage(filename);
+        return imageService.downloadImage(filename);
     }
 }

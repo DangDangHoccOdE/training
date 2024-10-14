@@ -29,7 +29,7 @@ public class LikeService implements ILikeService {
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
     }
 
     private Like checkDuplicateLike(long userId, Long postId, Long commentId) {
@@ -41,7 +41,7 @@ public class LikeService implements ILikeService {
     }
 
     @Override
-    public ResponseEntity<?> likePost(Authentication authentication, long postId) {
+    public ResponseEntity<Notice> likePost(Authentication authentication, long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException("The post is not found", HttpStatus.NOT_FOUND));
 
@@ -52,7 +52,7 @@ public class LikeService implements ILikeService {
         }
 
         if (checkDuplicateLike(user.getId(), postId, null) != null) {
-            throw new CustomException("Like is duplicate!", HttpStatus.BAD_REQUEST);
+            throw new CustomException("Like is duplicate!", HttpStatus.CONFLICT);
         }
 
         Like like = Like.builder()
@@ -67,14 +67,14 @@ public class LikeService implements ILikeService {
     }
 
     @Override
-    public ResponseEntity<?> likeComment(Authentication authentication, long commentId) {
+    public ResponseEntity<Notice> likeComment(Authentication authentication, long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException("The comment is not found", HttpStatus.NOT_FOUND));
 
         User user = getAuthenticatedUser(authentication);
 
         if (checkDuplicateLike(user.getId(), null, commentId) != null) {
-            throw new CustomException("Like is duplicate!", HttpStatus.BAD_REQUEST);
+            throw new CustomException("Like is duplicate!", HttpStatus.CONFLICT);
         }
 
         Like like = Like.builder()
@@ -89,11 +89,11 @@ public class LikeService implements ILikeService {
     }
 
     @Override
-    public ResponseEntity<?> unlike(Authentication authentication, long likeId) {
+    public ResponseEntity<Notice> unlike(Authentication authentication, long likeId) {
         User user = getAuthenticatedUser(authentication);
 
         Like like = likeRepository.findById(likeId)
-                .orElseThrow(() -> new CustomException("Like not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("Like is not found", HttpStatus.NOT_FOUND));
 
         if (user != like.getUser()) {
             throw new AccessDeniedException("You do not have access");

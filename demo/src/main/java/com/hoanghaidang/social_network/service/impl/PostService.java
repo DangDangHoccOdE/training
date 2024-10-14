@@ -28,7 +28,7 @@ public class PostService implements IPostService {
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
     }
 
     private void checkPostOwnership(User user, Post post) {
@@ -37,8 +37,12 @@ public class PostService implements IPostService {
         }
     }
 
+    private Post getPost(long postId){
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
+    }
     @Override
-    public ResponseEntity<?> createPost(Authentication authentication, PostDto postDto) {
+    public ResponseEntity<Notice> createPost(Authentication authentication, PostDto postDto) {
         if (postDto.getContent() == null && postDto.getTitle() == null && postDto.getImage() == null) {
             throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
         }
@@ -59,9 +63,8 @@ public class PostService implements IPostService {
     }
 
     @Override
-    public ResponseEntity<?> editPost(Authentication authentication, long postId, PostDto postDto) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
+    public ResponseEntity<PostDto> editPost(Authentication authentication, long postId, PostDto postDto) {
+        Post post = getPost(postId);
 
         User user = getAuthenticatedUser(authentication);
         checkPostOwnership(user, post);
@@ -77,9 +80,8 @@ public class PostService implements IPostService {
     }
 
     @Override
-    public ResponseEntity<?> deletePost(Authentication authentication, long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
+    public ResponseEntity<Notice> deletePost(Authentication authentication, long postId) {
+        Post post = getPost(postId);
 
         User user = getAuthenticatedUser(authentication);
         checkPostOwnership(user, post);

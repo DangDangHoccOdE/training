@@ -76,7 +76,7 @@ public class ImageService {
                 contentType.equals(MediaType.IMAGE_PNG_VALUE) ||
                 contentType.equals(MediaType.IMAGE_GIF_VALUE);
     }
-    public ResponseEntity<?> getImage(String filename) {
+    public ResponseEntity<?> downloadImage(String filename) {
         try {
             // Xác định đường dẫn file
             Path filePath = Path.of(UPLOAD_DIR).resolve(filename).normalize();

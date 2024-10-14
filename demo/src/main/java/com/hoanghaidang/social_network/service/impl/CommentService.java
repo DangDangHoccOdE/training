@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.CommentRepository;
 import com.hoanghaidang.social_network.dao.PostRepository;
+import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.CommentDto;
 import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Notice;
@@ -25,11 +26,11 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CommentService implements ICommentService {
     CommentRepository commentRepository;
-    com.hoanghaidang.social_network.dao.UserRepository userRepository;
+    UserRepository userRepository;
     PostRepository postRepository;
 
     @Override
-    public ResponseEntity<?> createComment(Authentication authentication, long postId, CommentDto commentDto) {
+    public ResponseEntity<Notice> createComment(Authentication authentication, long postId, CommentDto commentDto) {
         validateContent(commentDto);
 
         User user = getUser(authentication);
@@ -59,7 +60,7 @@ public class CommentService implements ICommentService {
     }
 
     @Override
-    public ResponseEntity<?> deleteComment(Authentication authentication, Long commentId) {
+    public ResponseEntity<Notice> deleteComment(Authentication authentication, Long commentId) {
         Comment comment = getComment(commentId);
         User user = getUser(authentication);
 
@@ -82,17 +83,17 @@ public class CommentService implements ICommentService {
 
     private User getUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
     }
 
     private Post getPost(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException("Post not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("Post is not found", HttpStatus.NOT_FOUND));
     }
 
     private Comment getComment(Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new CustomException("Comment not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CustomException("Comment is not found", HttpStatus.NOT_FOUND));
     }
 
     private void validateCommentOwnership(Comment comment, User user, Long postId) {

@@ -3,12 +3,14 @@ package com.hoanghaidang.social_network.dto;
 import com.hoanghaidang.social_network.annotation.ValidDirectory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UserDto {
     @NotBlank(message = "First name is required")
     @Size(max = 20, message = "First name must not exceed 20 characters")

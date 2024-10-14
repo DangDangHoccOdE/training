@@ -2,7 +2,7 @@ package com.hoanghaidang.social_network.utils;
 
 import java.security.SecureRandom;
 
-public class OtpGenerator {
+public class GetOtp {
     public static String generateOtp(int length){
         SecureRandom random = new SecureRandom();
         StringBuilder otp = new StringBuilder();

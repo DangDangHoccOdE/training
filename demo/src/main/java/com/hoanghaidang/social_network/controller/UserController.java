@@ -1,10 +1,13 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.*;
+import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -14,15 +17,16 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/user")
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 @Tag(name = "User Management", description = "APIs for managing user accounts and authentication")
 public class UserController {
-    @Autowired
-    private IUserService iUserService;
+    IUserService iUserService;
 
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(@RequestHeader String refreshToken){
-        return iUserService.refreshToken(refreshToken);
+    public ResponseEntity<?> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
+        return iUserService.refreshToken(authentication,refreshToken);
     }
 
     @Operation(summary = "Report User",description = "Report User during a week")
@@ -57,13 +61,13 @@ public class UserController {
 
     @Operation(summary = "Register User", description = "Register User")
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Validated @RequestBody RegistrationDto registrationDto) throws Exception {
+    public ResponseEntity<Notice> registerUser(@Validated @RequestBody RegistrationDto registrationDto) throws Exception {
         return iUserService.registerUser(registrationDto);
     }
 
     @Operation(summary = "Active User", description = "Active User")
     @PutMapping("/active_account/{email}")
-    public ResponseEntity<?> activeUser(@PathVariable String email){
+    public ResponseEntity<Notice> activeUser(@PathVariable String email){
         return iUserService.activeUser(email);
     }
 
