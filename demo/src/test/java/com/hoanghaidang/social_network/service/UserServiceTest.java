@@ -10,6 +10,7 @@ import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.service.impl.EmailService;
 import com.hoanghaidang.social_network.service.impl.JwtService;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class UserServiceTests {
+public class UserServiceTest {
     @InjectMocks
     private UserService userService;
     @Mock
@@ -67,6 +68,8 @@ public class UserServiceTests {
     private Authentication authentication;
     @Mock
     private ValueOperations<String, String> valueOperations;
+    @Mock
+    private EmailService emailService;
 
     private User user;
     private Role role;
@@ -167,7 +170,7 @@ public class UserServiceTests {
 
     @Test
     void testRegisterUser_Success() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(null);
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
         when(roleRepository.findByRoleName(role.getRoleName())).thenReturn(null);
         user.setRoles(Collections.singletonList(role));
 

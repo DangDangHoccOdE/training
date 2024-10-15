@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CommentServiceTests {
+public class CommentServiceTest {
     @InjectMocks
     private CommentService commentService;
     @Mock
@@ -77,7 +77,7 @@ public class CommentServiceTests {
         ResponseEntity<?> response = commentService.createComment(authentication,mockPost.getId(),commentDto);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals("Create comment completed",((Notice) response.getBody()).getMessage());
+        assertEquals("Create comment completed",((Notice) Objects.requireNonNull(response.getBody())).getMessage());
         assertEquals(1,mockPost.getCommentCount());
         verify(commentRepository).save(any(Comment.class));
         verify(postRepository).save(mockPost);
@@ -108,6 +108,7 @@ public class CommentServiceTests {
     @Test
     void testCreateComment_FailEmptyContentAndImage(){
         commentDto.setContent(null);
+        commentDto.setImage(null);
 
         mockAuthenticationAndUser(mockUser);
         when(postRepository.findById(mockPost.getId())).thenReturn(Optional.of(mockPost));
@@ -154,6 +155,17 @@ public class CommentServiceTests {
     }
 
     @Test
+    void testEditComment_FailCommentNotInPost(){
+        commentDto.setPostId(2L);
+        when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
+        mockAuthenticationAndUser(mockUser);
+
+        CustomException exception = assertThrows(CustomException.class,() -> commentService.editComment(authentication,mockComment.getId(),commentDto));
+        assertEquals(exception.getMessage(),"Comment does not belong to this post");
+        assertEquals(exception.getStatus(),HttpStatus.CONFLICT);
+    }
+
+    @Test
     void deleteComment_Success(){
         mockAuthenticationAndUser(mockUser);
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
@@ -161,10 +173,23 @@ public class CommentServiceTests {
         ResponseEntity<?> response = commentService.deleteComment(authentication,mockComment.getId());
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals("Delete comment completed",((Notice) response.getBody()).getMessage());
+        assertEquals("Delete comment completed",((Notice) Objects.requireNonNull(response.getBody())).getMessage());
         assertEquals(-1,mockPost.getCommentCount());
         verify(commentRepository).delete(mockComment);
         verify(postRepository).save(mockPost);
+    }
+
+    @Test
+    void testDeleteComment_FailNotOwner(){
+        User other = new User();
+        other.setEmail("b@gmail.com");
+
+        mockAuthenticationAndUser(other);
+        when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,()-> commentService.deleteComment(authentication,mockComment.getId()));
+
+        assertEquals("You do not have access!",exception.getMessage());
     }
 
     private void mockAuthenticationAndUser(User user) {

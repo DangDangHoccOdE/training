@@ -3,14 +3,15 @@ package com.hoanghaidang.social_network.service.impl;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
+import com.hoanghaidang.social_network.exception.CustomException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ public class JwtService {
 
     public String generateToken(String email){
         Map<String, Object> claim = new HashMap<>();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         claim.put("isActive", user.isActive());
         claim.put("userId", user.getId());
@@ -106,7 +107,7 @@ public class JwtService {
                 .getBody();
     }
 
-    public <T> T extractClaims(String token, Function<Claims,T> claimsFunction,String secret){
+    private  <T> T extractClaims(String token, Function<Claims,T> claimsFunction,String secret){
         Claims claims = extractAllClaims(token,secret);
         return claimsFunction.apply(claims);
     }
@@ -124,13 +125,8 @@ public class JwtService {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails,String secret) {
-        try {
             String email = extractEmail(token,secret);
             return (email.equals(userDetails.getUsername()) && !isTokenExpired(token,secret));
-        } catch (SignatureException e) {
-            System.out.println("Invalid JWT signature: " + e.getMessage());
-            throw e;
-        }
     }
 
     public Boolean validateRefreshToken(String refreshToken, String secret) {

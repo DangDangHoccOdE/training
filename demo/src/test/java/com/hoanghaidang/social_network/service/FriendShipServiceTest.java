@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-public class FriendShipServiceTests {
+public class FriendShipServiceTest {
     @InjectMocks
     private FriendShipService friendShipService;
     @Mock
@@ -60,7 +60,7 @@ public class FriendShipServiceTests {
     }
 
     @Test
-    void testNotFoundFriendship() {
+    void testAcceptFriendship_NotFoundFriendship() {
         when(friendShipRepository.findById(friendShip.getId())).thenThrow(new CustomException("Friendship is not found", HttpStatus.NOT_FOUND));
         mockAuthenticationAndUser(sender);
 
@@ -71,7 +71,7 @@ public class FriendShipServiceTests {
     }
 
     @Test
-    void testNotFoundUser() {
+    void testSendFriendship_NotFoundUser() {
         when(authentication.getName()).thenReturn(sender.getEmail());
         when(userRepository.findByEmail(sender.getEmail())).thenThrow(new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
@@ -79,6 +79,31 @@ public class FriendShipServiceTests {
 
         assertEquals("User is not found", customException.getMessage());
         assertEquals(HttpStatus.NOT_FOUND, customException.getStatus());
+    }
+
+    @Test
+    void testSendFriendship_FailDuplicateInvitations() {
+        mockAuthenticationAndUser(sender);
+        when(userRepository.findUserById(receiver.getId())).thenReturn(Optional.of(receiver));
+        when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
+        friendShip.setStatus("pending");
+
+        CustomException customException = assertThrows(CustomException.class, () -> friendShipService.sendFriendRequest(authentication, receiver.getId()));
+
+        assertEquals("Send duplicate invitations!", customException.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, customException.getStatus());
+    }
+
+    @Test
+    void testSendFriendship_FailNotAccess() {
+        mockAuthenticationAndUser(sender);
+        when(userRepository.findUserById(sender.getId())).thenReturn(Optional.of(sender));
+
+        when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
+
+        AccessDeniedException customException = assertThrows(AccessDeniedException.class, () -> friendShipService.sendFriendRequest(authentication, sender.getId()));
+
+        assertEquals("You do have not access", customException.getMessage());
     }
 
     @Test
@@ -95,7 +120,7 @@ public class FriendShipServiceTests {
     }
 
     @Test
-    void acceptFriendRequest_Success() {
+    void testAcceptFriendRequest_Success() {
         friendShip.setStatus("pending");
         mockAuthenticationAndUser(receiver);
 
@@ -110,7 +135,7 @@ public class FriendShipServiceTests {
     }
 
     @Test
-    void declineFriendship_Success() {
+    void testDeclineFriendship_Success() {
         friendShip.setStatus("pending");
         mockAuthenticationAndUser(receiver);
 
@@ -125,7 +150,7 @@ public class FriendShipServiceTests {
     }
 
     @Test
-    void deleteFriendship_Success() {
+    void testDeleteFriendship_Success() {
         friendShip.setStatus("accepted");
         mockAuthenticationAndUser(receiver);
 
@@ -136,6 +161,19 @@ public class FriendShipServiceTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Unfriended successfully", Objects.requireNonNull(response.getBody()).getMessage());
         verify(friendShipRepository).delete(friendShip);
+    }
+
+    @Test
+    void testDeleteFriendship_FailNotAccept() {
+        mockAuthenticationAndUser(sender);
+        friendShip.setStatus("pending");
+
+        when(friendShipRepository.findById(friendShip.getId())).thenReturn(Optional.of(friendShip));
+
+        CustomException exception = assertThrows(CustomException.class, () -> friendShipService.deleteFriendShip(authentication, friendShip.getId()));
+
+        assertEquals("Operation failed, Cannot unfriend", exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
     }
 
     // Helper methods
