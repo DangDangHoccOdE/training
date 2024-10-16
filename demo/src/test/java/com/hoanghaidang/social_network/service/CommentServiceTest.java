@@ -64,9 +64,10 @@ public class CommentServiceTest {
         mockComment.setUser(mockUser);
         mockComment.setCreateAt(LocalDateTime.now());
 
-        commentDto = new CommentDto();
-        commentDto.setContent("a");
-        commentDto.setPostId(1L);
+        commentDto = CommentDto.builder()
+                .content("a")
+                .postId(1L)
+                .build();
     }
 
     @Test

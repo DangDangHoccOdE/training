@@ -27,7 +27,7 @@ public class TimeLineService implements ITimeLineService {
     UserRepository userRepository;
 
     @Override
-    public ResponseEntity<?> timeline(String email, int page, int size) {
+    public ResponseEntity<Map<String,Object>> timeline(String email, int page, int size) {
         User user = userRepository.findByEmail(email).orElseThrow(()-> new CustomException("User is not found", HttpStatus.NOT_FOUND));
         Pageable pageable = PageRequest.of(page, size);
 

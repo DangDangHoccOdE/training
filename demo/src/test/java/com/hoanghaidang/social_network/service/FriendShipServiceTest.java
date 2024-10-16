@@ -95,7 +95,22 @@ public class FriendShipServiceTest {
     }
 
     @Test
-    void testSendFriendship_FailNotAccess() {
+    void testSendFriendship_UpdateStatusFriendship() {
+        friendShip.setStatus("declined");
+        mockAuthenticationAndUser(sender);
+
+        when(userRepository.findUserById(receiver.getId())).thenReturn(Optional.of(receiver));
+        when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
+        when(friendShipRepository.findByUser1AndUser2(receiver, sender)).thenReturn(Optional.of(friendShip));
+
+        ResponseEntity<Notice> response = friendShipService.sendFriendRequest(authentication, receiver.getId());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(friendShipRepository, times(1)).save(any(FriendShip.class));
+    }
+
+    @Test
+    void testSendFriendship_FailStatusPending() {
         mockAuthenticationAndUser(sender);
         when(userRepository.findUserById(sender.getId())).thenReturn(Optional.of(sender));
 
@@ -147,6 +162,21 @@ public class FriendShipServiceTest {
         assertEquals("declined", friendShip.getStatus());
         assertEquals("Friendship declined successfully", Objects.requireNonNull(response.getBody()).getMessage());
         verify(friendShipRepository, times(1)).save(friendShip);
+    }
+
+    @Test
+    void testDeclineFriendship_FailStatusPending() {
+        mockAuthenticationAndUser(sender);
+        friendShip.setStatus("accepted");
+        when(userRepository.findUserById(sender.getId())).thenReturn(Optional.of(sender));
+
+        when(friendShipRepository.findById(friendShip.getId())).thenReturn(Optional.of(friendShip));
+        when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
+
+        CustomException customException = assertThrows(CustomException.class, () -> friendShipService.declineFriendShip(authentication, sender.getId()));
+
+        assertEquals("Operation failed, friend request not found", customException.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST,customException.getStatus());
     }
 
     @Test

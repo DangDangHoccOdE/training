@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dto.UploadImageResponse;
+import com.hoanghaidang.social_network.entity.Notice;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +27,7 @@ public class ImageService {
     public ResponseEntity<?> uploadFiles(List<MultipartFile> files) {
         // Kiểm tra nếu danh sách file trống hoặc không có file nào
         if (files == null || files.isEmpty()) {
-            return ResponseEntity.badRequest().body("No files to upload");
+            return ResponseEntity.badRequest().body(new Notice("No files to upload"));
         }
 
         // Dùng StringBuilder để lưu các đường dẫn ảnh sau khi upload thành công
@@ -35,13 +36,13 @@ public class ImageService {
         for (MultipartFile file : files) {
             // Kiểm tra nếu file trống
             if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body("One of the files is empty");
+                return ResponseEntity.badRequest().body(new Notice("One of the files is empty"));
             }
 
             // Kiểm tra xem file có phải ảnh không
             String contentType = file.getContentType();
             if (contentType == null || !isImage(contentType)) {
-                return ResponseEntity.badRequest().body("One of the files is not an image");
+                return ResponseEntity.badRequest().body(new Notice("One of the files is not an image"));
             }
 
             try {
@@ -62,7 +63,7 @@ public class ImageService {
                 imageUrls.add(imageUrl);
 
             } catch (IOException e) {
-                return new ResponseEntity<>("An error occurred when uploading one of the files", HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(new Notice("An error occurred when uploading one of the files"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -99,12 +100,12 @@ public class ImageService {
                         .header(HttpHeaders.CONTENT_DISPOSITION, headerValue) // Đặt header để download
                         .body(resource);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Notice("File not found"));
             }
         } catch (MalformedURLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Malformed URL");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Notice("Malformed URL"));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred when reading the file");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Notice("An error occurred when reading the file"));
         }
     }
 

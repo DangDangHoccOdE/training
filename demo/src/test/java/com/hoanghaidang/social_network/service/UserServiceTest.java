@@ -195,6 +195,29 @@ public class UserServiceTest {
     }
 
     @Test
+    void testRegisterUser_FailEmailExists() {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(roleRepository.findByRoleName(role.getRoleName())).thenReturn(null);
+        user.setRoles(Collections.singletonList(role));
+
+        CustomException exception = assertThrows(CustomException.class, () -> userService.registerUser(registrationDto));
+
+        assertEquals("Email is exists", exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    }
+
+    @Test
+    void testRegisterUser_FailInfoValid() {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+        when(roleRepository.findByRoleName(role.getRoleName())).thenReturn(null);
+        registrationDto.setDateOfBirth("15/10/2025");
+
+        Exception exception = assertThrows(Exception.class, () -> userService.registerUser(registrationDto));
+
+        assertNotNull(exception.getMessage());
+    }
+
+    @Test
     void testActiveUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         user.setActive(false);
@@ -283,8 +306,8 @@ public class UserServiceTest {
                 .email("a@gmail.com")
                 .password("Dang972004@")
                 .build();
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new AuthenticationException("Bad credentials") {});
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
 
         ResponseEntity<Notice> response = userService.login(loginDto);
 

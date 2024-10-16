@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
@@ -20,9 +22,9 @@ public class TimeLineController {
 
     @Operation(summary = "Time line", description = "Time line")
     @GetMapping("/timeline")
-    public ResponseEntity<?> timeline(Authentication authentication,
-                                      @RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "5") int size
+    public ResponseEntity<Map<String,Object>> timeline(Authentication authentication,
+                                                       @RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "5") int size
     ) {
         return timeLineService.timeline(authentication.getName(), page,size);
     }

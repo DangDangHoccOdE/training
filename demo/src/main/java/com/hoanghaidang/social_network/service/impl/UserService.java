@@ -176,20 +176,16 @@ public class UserService implements IUserService {
     }
 
     public ResponseEntity<Notice> login(LoginDto loginDto){
-          try{
-              Authentication authentication = authenticationManager.authenticate(
-                      new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
-              if(authentication.isAuthenticated()){
-                  String otp = GetOtp.generateOtp(6); // 6 char
+        if(authentication.isAuthenticated()){
+            String otp = GetOtp.generateOtp(6); // 6 char
 
-                  // Save otp in redis with TTL 5min
-                  stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
-                  return ResponseEntity.ok(new Notice("OTP: "+otp));
-              }
-          }catch (AuthenticationException e){
-              System.out.println(e.getMessage());
-          }
+            // Save otp in redis with TTL 5min
+            stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
+            return ResponseEntity.ok(new Notice("OTP: "+otp));
+        }
         return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
 
