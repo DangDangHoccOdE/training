@@ -35,7 +35,7 @@ public class Endpoints {
     public static final String[] USER_PUT_ENDPOINTS={
             "/api/friend_ship/accept/*",
             "/api/friend_ship/decline/*",
-            "/api/user/update_profile/*",
+            "/api/user/update_profile",
             "/api/post/edit/*",
             "/api/comment/edit/*",
     };

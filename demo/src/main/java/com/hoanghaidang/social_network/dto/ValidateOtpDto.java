@@ -1,11 +1,13 @@
 package com.hoanghaidang.social_network.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class ValidateOtpDto {
     @NotBlank(message = "Otp is required")
     private String otp;

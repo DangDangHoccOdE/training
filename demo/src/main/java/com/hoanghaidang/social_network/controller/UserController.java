@@ -1,7 +1,9 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.*;
+import com.hoanghaidang.social_network.entity.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
+import com.hoanghaidang.social_network.service.impl.UserService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +24,7 @@ import java.io.IOException;
 @Tag(name = "User Management", description = "APIs for managing user accounts and authentication")
 public class UserController {
     IUserService iUserService;
-
+    UserService userService;
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
     public ResponseEntity<?> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
@@ -37,25 +39,26 @@ public class UserController {
 
     @Operation(summary = "Forget Password", description = "Forget Password")
     @PostMapping("/forget_password")
-    public ResponseEntity<?> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
-        return iUserService.forgetPassword(userRequestDto.getEmail());
+    public ResponseEntity<ApiResponse> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
+        return  userService.forgetPassword(userRequestDto.getEmail());
+
     }
 
     @Operation(summary = "Change Password", description = "Change Password")
     @PutMapping("/change_password/{email}")
-    public ResponseEntity<?> changePassword(@PathVariable String email,@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
+    public ResponseEntity<Notice> changePassword(@PathVariable String email,@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
         return iUserService.changePassword(email,requestForgetPasswordDto.getToken(),requestForgetPasswordDto.getNewPassword());
     }
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
     @PutMapping("/update_profile/{email}")
-    public ResponseEntity<?> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
+    public ResponseEntity<UserDto> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
         return iUserService.updateProfile(email,userDto,authentication);
     }
 
     @Operation(summary = "Login User", description = "Login User")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto){
+    public ResponseEntity<Notice> login(@Validated @RequestBody LoginDto loginDto){
         return iUserService.login(loginDto);
     }
 

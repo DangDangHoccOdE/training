@@ -1,14 +1,11 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hoanghaidang.social_network.dto.FriendshipDto;
 import com.hoanghaidang.social_network.entity.Notice;
-import com.hoanghaidang.social_network.entity.User;
 
 import static org.mockito.Mockito.doReturn;
 
 import com.hoanghaidang.social_network.service.impl.FriendShipService;
-import static org.hamcrest.CoreMatchers.is;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

@@ -3,12 +3,14 @@ package com.hoanghaidang.social_network.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class RequestForgetPasswordDto {
     @NotBlank(message = "Token is not empty")
     private String token;
