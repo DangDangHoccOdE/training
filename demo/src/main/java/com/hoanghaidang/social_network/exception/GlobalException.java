@@ -45,29 +45,29 @@ public class GlobalException extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ExpiredJwtException.class) // Token hết hạn
     public ResponseEntity<Notice> handleExpiredJwtException(ExpiredJwtException e){
         System.out.println("ExpiredJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is expired"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is expired"));
     }
 
     @ExceptionHandler(UnsupportedJwtException.class) // Token không hỗ trợ
     public ResponseEntity<?> handleUnsupportedJwtException(UnsupportedJwtException e){
         System.out.println("UnsupportedJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is unsupported"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is unsupported"));
     }
     @ExceptionHandler(MalformedJwtException.class) // token không đúng định dạng
     public ResponseEntity<?> handleMalformedJwtException(MalformedJwtException e){
         System.out.println("MalformedJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is malformed"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is malformed"));
     }
     @ExceptionHandler(SignatureException.class) // Chữ ký token không đúng
     public ResponseEntity<?> handleSignatureException(SignatureException e){
         System.out.println("SignatureException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("SignatureToken is not valid"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("SignatureToken is not valid"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class) // Token không hợp lệ
     public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
         System.out.println("IllegalArgumentException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Notice("Token is not valid"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Info is not valid"));
     }
 
     @Override

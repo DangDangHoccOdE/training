@@ -24,7 +24,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -116,7 +115,7 @@ public class UserService implements IUserService {
     public ResponseEntity<Notice> registerUser(RegistrationDto registrationDto) {
         Optional<User> user = userRepository.findByEmail(registrationDto.getEmail());
         if(user.isPresent()){
-            throw new CustomException("Email is exists",HttpStatus.BAD_REQUEST);
+            throw new CustomException("Email is exists",HttpStatus.CONFLICT);
         }
 
         Role roleFind= roleRepository.findByRoleName("ROLE_USER");
@@ -167,7 +166,7 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         if(user.isActive()){
-            throw new CustomException("User has been activated", HttpStatus.BAD_REQUEST);
+            throw new CustomException("User has been activated", HttpStatus.CONFLICT);
         }
         user.setActive(true);
         userRepository.save(user);
@@ -208,20 +207,14 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<UserDto> updateProfile(String email,UserDto userDto,Authentication authentication) {
-        User user = userRepository.findByEmail(email)
+    public ResponseEntity<UserDto> updateProfile(UserDto userDto,Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
         if(!user.isActive()){
-            throw new CustomException("User has not been activated",HttpStatus.BAD_REQUEST);
+            throw new CustomException("User has not been activated",HttpStatus.FORBIDDEN);
         }
 
-        User auth =  userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
-
-        if(auth!=user){
-            throw new AccessDeniedException("You have not access");
-        }
         user.setLastName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setJob(userDto.getJob());
@@ -238,28 +231,28 @@ public class UserService implements IUserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = UUID.randomUUID().toString();
         // Save token -> redis TTL about 5 min
         stringRedisTemplate.opsForValue().set(token,user.getEmail(),5, TimeUnit.MINUTES);
-        String link = "http://localhost:8080/api/user/change_password/"+email;
+        String link = "http://localhost:8080/api/user/change_password";
         return ResponseEntity.ok(new ApiResponse(link,token));
     }
 
     @Override
     public ResponseEntity<Notice> changePassword(String email,String token, String newPassword) {
-        String tokenRedis = stringRedisTemplate.opsForValue().get(token);
+        String emailValid = stringRedisTemplate.opsForValue().get(token);
 
-        if (tokenRedis == null) {
+        if (emailValid == null) {
             throw new CustomException("Token is invalid or expired",HttpStatus.UNAUTHORIZED);
         }
 
-        String emailToken = jwtService.extractEmail(email,JwtService.SECRET_ACCESS_TOKEN);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
-        if(!emailToken.equals(user.getEmail())){
-            throw new CustomException("User information does not match",HttpStatus.BAD_REQUEST);
+        if(!user.getEmail().equals(emailValid)){
+            throw new CustomException("Email does not match",HttpStatus.FORBIDDEN);
         }
+
         user.setPassword(bCryptPasswordEncoder.encode(newPassword));
         userRepository.save(user);
 

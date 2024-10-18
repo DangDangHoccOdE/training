@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class RequestForgetPasswordDto {
+    @Email(message = "Email is not valid")
+    @NotBlank(message = "Email is not empty")
+    private String email;
+
     @NotBlank(message = "Token is not empty")
     private String token;
 

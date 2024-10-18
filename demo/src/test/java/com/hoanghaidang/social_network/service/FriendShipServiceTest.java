@@ -116,9 +116,9 @@ public class FriendShipServiceTest {
 
         when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
 
-        AccessDeniedException customException = assertThrows(AccessDeniedException.class, () -> friendShipService.sendFriendRequest(authentication, sender.getId()));
+        CustomException customException = assertThrows(CustomException.class, () -> friendShipService.sendFriendRequest(authentication, sender.getId()));
 
-        assertEquals("You do have not access", customException.getMessage());
+        assertEquals("Sender and receiver cannot be the same person", customException.getMessage());
     }
 
     @Test
@@ -166,14 +166,13 @@ public class FriendShipServiceTest {
 
     @Test
     void testDeclineFriendship_FailStatusPending() {
-        mockAuthenticationAndUser(sender);
+        mockAuthenticationAndUser(receiver);
         friendShip.setStatus("accepted");
-        when(userRepository.findUserById(sender.getId())).thenReturn(Optional.of(sender));
+        when(userRepository.findUserById(receiver.getId())).thenReturn(Optional.of(receiver));
 
         when(friendShipRepository.findById(friendShip.getId())).thenReturn(Optional.of(friendShip));
-        when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.of(friendShip));
 
-        CustomException customException = assertThrows(CustomException.class, () -> friendShipService.declineFriendShip(authentication, sender.getId()));
+        CustomException customException = assertThrows(CustomException.class, () -> friendShipService.declineFriendShip(authentication, friendShip.getId()));
 
         assertEquals("Operation failed, friend request not found", customException.getMessage());
         assertEquals(HttpStatus.BAD_REQUEST,customException.getStatus());
@@ -191,6 +190,18 @@ public class FriendShipServiceTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Unfriended successfully", Objects.requireNonNull(response.getBody()).getMessage());
         verify(friendShipRepository).delete(friendShip);
+    }
+
+    @Test
+    void testDeleteFriendship_FailAccessDenied() {
+        friendShip.setStatus("accepted");
+        mockAuthenticationAndUser(new User());
+
+        when(friendShipRepository.findById(friendShip.getId())).thenReturn(Optional.of(friendShip));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> friendShipService.deleteFriendShip(authentication, friendShip.getId()));
+
+        assertEquals("You do have not access", exception.getMessage());
     }
 
     @Test

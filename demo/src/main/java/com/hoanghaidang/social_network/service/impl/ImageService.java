@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dto.UploadImageResponse;
 import com.hoanghaidang.social_network.entity.Notice;
+import com.hoanghaidang.social_network.exception.CustomException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -24,7 +27,7 @@ import java.util.UUID;
 public class ImageService {
     private static final String UPLOAD_DIR = "uploads/";
 
-    public ResponseEntity<?> uploadFiles(List<MultipartFile> files) {
+    public ResponseEntity<?> uploadFiles(List<MultipartFile> files) throws IOException {
         // Kiểm tra nếu danh sách file trống hoặc không có file nào
         if (files == null || files.isEmpty()) {
             return ResponseEntity.badRequest().body(new Notice("No files to upload"));
@@ -39,10 +42,15 @@ public class ImageService {
                 return ResponseEntity.badRequest().body(new Notice("One of the files is empty"));
             }
 
+            long maxSize = 5 * 1024 * 1024;
+            if(file.getSize() > maxSize){
+                throw new CustomException("One of the files exceeds the maximum allowed size (5MB)",HttpStatus.BAD_REQUEST);
+            }
+
             // Kiểm tra xem file có phải ảnh không
-            String contentType = file.getContentType();
-            if (contentType == null || !isImage(contentType)) {
-                return ResponseEntity.badRequest().body(new Notice("One of the files is not an image"));
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                throw new CustomException("One of the files is not an image",HttpStatus.BAD_REQUEST);
             }
 
             try {
@@ -63,7 +71,7 @@ public class ImageService {
                 imageUrls.add(imageUrl);
 
             } catch (IOException e) {
-                return new ResponseEntity<>(new Notice("An error occurred when uploading one of the files"), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new CustomException("An error occurred when uploading one of the files",HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -71,12 +79,6 @@ public class ImageService {
         return ResponseEntity.status(HttpStatus.OK).body(UploadImageResponse.builder().images(imageUrls).build());
     }
 
-    private boolean isImage(String contentType) {
-        // Kiểm tra content type có phải là ảnh không
-        return contentType.equals(MediaType.IMAGE_JPEG_VALUE) ||
-                contentType.equals(MediaType.IMAGE_PNG_VALUE) ||
-                contentType.equals(MediaType.IMAGE_GIF_VALUE);
-    }
     public ResponseEntity<?> downloadImage(String filename) {
         try {
             // Xác định đường dẫn file
@@ -103,11 +105,10 @@ public class ImageService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Notice("File not found"));
             }
         } catch (MalformedURLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Notice("Malformed URL"));
+            throw new CustomException("Malformed URL",HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Notice("An error occurred when reading the file"));
+            throw new CustomException("An error occurred when reading the file",HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
 }

@@ -37,7 +37,7 @@ public class FriendShipService implements IFriendShipService {
     }
 
     private void checkFriendShipAccess(User user, FriendShip friendShip) {
-        if (user != friendShip.getUser2() && user != friendShip.getUser1()) {
+        if (user != friendShip.getUser2()) {
             throw new AccessDeniedException("You do have not access");
         }
     }
@@ -55,7 +55,7 @@ public class FriendShipService implements IFriendShipService {
                 .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
 
         if (sender == receiver) {
-            throw new AccessDeniedException("You do have not access");
+            throw new CustomException("Sender and receiver cannot be the same person", HttpStatus.BAD_REQUEST);
         }
 
         Optional<FriendShip> existingFriendship1 = friendShipRepository.findByUser1AndUser2(sender, receiver);
@@ -110,10 +110,13 @@ public class FriendShipService implements IFriendShipService {
     public ResponseEntity<Notice> deleteFriendShip(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
-        checkFriendShipAccess(auth, friendShip);
 
         if (!"accepted".equals(friendShip.getStatus())) {
             throw new CustomException("Operation failed, Cannot unfriend", HttpStatus.BAD_REQUEST);
+        }
+
+        if (auth != friendShip.getUser2() && auth != friendShip.getUser1()) {
+            throw new AccessDeniedException("You do have not access");
         }
 
         friendShipRepository.delete(friendShip);

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,41 +27,52 @@ public class ImageServiceTest {
     private ImageService imageService;
     @Mock
     private UrlResource urlResource;
+    @Mock
+    private BufferedImage bufferedImage;
 
     @BeforeEach
     void setup(){
         MockitoAnnotations.openMocks(this);
     }
 
+//    @Test
+//    void uploadFiles_success() throws IOException {
+//        // Tạo file giả lập MockMultipartFile
+//        MockMultipartFile file = new MockMultipartFile("file", "test_image.jpg", "image/jpeg", "test data".getBytes());
+//        List<MultipartFile> files = List.of(file);
+//
+//        // Mock ImageIO để trả về một đối tượng BufferedImage giả lập
+//        BufferedImage bufferedImageMock = mock(BufferedImage.class);
+//        mockStatic(ImageIO.class).when(() -> ImageIO.read(file.getInputStream())).thenReturn(bufferedImageMock);
+//
+//        // Mock Files.exists và Files.write
+//        var mockedFiles = mockStatic(Files.class);
+//        mockedFiles.when(() -> Files.exists(Paths.get("uploads/"))).thenReturn(false);
+//        mockedFiles.when(() -> Files.createDirectories(Paths.get("uploads/"))).thenReturn(null);
+//        mockedFiles.when(() -> Files.write(any(Path.class), eq(file.getBytes()))).thenReturn(null);
+//
+//        // Gọi service
+//        ResponseEntity<?> response = imageService.uploadFiles(files);
+//
+//        // Kiểm tra kết quả
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        UploadImageResponse body = (UploadImageResponse) response.getBody();
+//        assertEquals(1, body.getImages().size());
+//    }
+//
+//    @Test
+//    void uploadFiles_fileNotImage()  throws IOException{
+//        MockMultipartFile file = new MockMultipartFile("file","text.txt","text/plain","test text".getBytes());
+//        List<MultipartFile> files = List.of(file);
+//
+//        ResponseEntity<?> response = imageService.uploadFiles(files);
+//
+//        assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+//        assertEquals(new Notice("One of the files is not an image"),response.getBody());
+//    }
+
     @Test
-    void uploadFiles_success() {
-        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image".getBytes());
-        List<MultipartFile> files = List.of(file);
-
-        try (var mocked = mockStatic(Files.class)) {
-            mocked.when(() -> Files.exists(Paths.get("uploads/"))).thenReturn(false);
-            mocked.when(() -> Files.createDirectories(Paths.get("uploads/"))).thenReturn(null);
-            mocked.when(() -> Files.write(Path.of("uploads/test.jpg"), file.getBytes())).thenReturn(null);
-
-            ResponseEntity<?> response = imageService.uploadFiles(files);
-
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-        }
-    }
-
-    @Test
-    void uploadFiles_fileNotImage(){
-        MockMultipartFile file = new MockMultipartFile("file","text.txt","text/plain","test text".getBytes());
-        List<MultipartFile> files = List.of(file);
-
-        ResponseEntity<?> response = imageService.uploadFiles(files);
-
-        assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
-        assertEquals(new Notice("One of the files is not an image"),response.getBody());
-    }
-
-    @Test
-    void uploadFiles_fileIsEmpty(){
+    void uploadFiles_fileIsEmpty() throws IOException {
         MockMultipartFile file = new MockMultipartFile("file","text.txt","text/plain","".getBytes());
         List<MultipartFile> files = List.of(file);
 

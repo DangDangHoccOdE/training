@@ -36,9 +36,8 @@ class CommentControllerTest {
     @Mock
     private Authentication authentication;
 
-//    @MockBean
     private MockMvc mockMvc;
-//    @MockBean
+
     private ObjectMapper objectMapper;
 
     private CommentDto commentDto;

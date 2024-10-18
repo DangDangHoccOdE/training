@@ -3,7 +3,7 @@ package com.hoanghaidang.social_network.controller;
 import static org.hamcrest.CoreMatchers.is;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.*;
-import com.hoanghaidang.social_network.entity.ApiResponse;
+import com.hoanghaidang.social_network.dto.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,11 +78,15 @@ public class UserControllerTest {
 
     @Test
     void testActiveUser_Success() throws Exception {
+        UserRequestDto userRequestDto = UserRequestDto.builder()
+                .email("a@gmail.com")
+                .build();
         Notice notice = new Notice("Active User completed");
         String email = "a@gmail.com";
         when(userService.activeUser(email)).thenReturn(ResponseEntity.ok(notice));
-        mockMvc.perform(put("/api/user/active_account/{email}",email)
+        mockMvc.perform(put("/api/user/active_account")
                         .principal(authentication)
+                        .content(objectMapper.writeValueAsString(userRequestDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message",is(notice.getMessage())));
@@ -126,11 +130,12 @@ public class UserControllerTest {
         RequestForgetPasswordDto requestForgetPasswordDto = RequestForgetPasswordDto.builder()
                 .token("Token")
                 .newPassword("Dang972004@")
+                .email(email)
                 .build();
 
         when(userService.changePassword(anyString(),anyString(),anyString())).thenReturn(ResponseEntity.ok(notice));
 
-        mockMvc.perform(put("/api/user/change_password/{email}",email)
+        mockMvc.perform(put("/api/user/change_password")
                         .content(objectMapper.writeValueAsString(requestForgetPasswordDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -139,7 +144,6 @@ public class UserControllerTest {
 
     @Test
     void testUpdateProfile_Success() throws Exception {
-        String email = "a@gmail.com";
         UserDto userDto = UserDto.builder()
                 .firstName("a")
                 .lastName("b")
@@ -150,9 +154,9 @@ public class UserControllerTest {
                 .avatar(null)
                 .build();
 
-        when(userService.updateProfile(anyString(),any(),any())).thenReturn(ResponseEntity.ok(userDto));
+        when(userService.updateProfile(any(),any())).thenReturn(ResponseEntity.ok(userDto));
 
-        mockMvc.perform(put("/api/user/update_profile/{email}",email)
+        mockMvc.perform(put("/api/user/update_profile")
                         .principal(authentication)
                         .content(objectMapper.writeValueAsString(userDto))
                         .contentType(MediaType.APPLICATION_JSON))

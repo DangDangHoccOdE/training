@@ -18,8 +18,8 @@ public class Endpoints {
 
 
     public static final String[] PUBLIC_PUT_ENDPOINTS={
-            "/api/user/change_password/*",
-            "/api/user/active_account/*",
+            "/api/user/change_password",
+            "/api/user/active_account",
     };
 
     public static final String[] USER_POST_ENDPOINT={
@@ -42,7 +42,7 @@ public class Endpoints {
 
     public static final String[] USER_GET_ENDPOINTS={
             "/api/download",
-            "/api/user/report/*",
+            "/api/user/report",
             "/api/timeline"
     };
 

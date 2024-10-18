@@ -1,7 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.*;
-import com.hoanghaidang.social_network.entity.ApiResponse;
+import com.hoanghaidang.social_network.dto.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
@@ -45,15 +45,17 @@ public class UserController {
     }
 
     @Operation(summary = "Change Password", description = "Change Password")
-    @PutMapping("/change_password/{email}")
-    public ResponseEntity<Notice> changePassword(@PathVariable String email,@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
-        return iUserService.changePassword(email,requestForgetPasswordDto.getToken(),requestForgetPasswordDto.getNewPassword());
+    @PutMapping("/change_password")
+    public ResponseEntity<Notice> changePassword(@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
+        return iUserService.changePassword(requestForgetPasswordDto.getEmail(),
+                requestForgetPasswordDto.getToken(),
+                requestForgetPasswordDto.getNewPassword());
     }
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
-    @PutMapping("/update_profile/{email}")
-    public ResponseEntity<UserDto> updateProfile(@PathVariable String email,@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
-        return iUserService.updateProfile(email,userDto,authentication);
+    @PutMapping("/update_profile")
+    public ResponseEntity<UserDto> updateProfile(@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
+        return iUserService.updateProfile(userDto,authentication);
     }
 
     @Operation(summary = "Login User", description = "Login User")
@@ -69,9 +71,9 @@ public class UserController {
     }
 
     @Operation(summary = "Active User", description = "Active User")
-    @PutMapping("/active_account/{email}")
-    public ResponseEntity<Notice> activeUser(@PathVariable String email){
-        return iUserService.activeUser(email);
+    @PutMapping("/active_account")
+    public ResponseEntity<Notice> activeUser(@Validated @RequestBody UserRequestDto userRequestDto){
+        return iUserService.activeUser(userRequestDto.getEmail());
     }
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")

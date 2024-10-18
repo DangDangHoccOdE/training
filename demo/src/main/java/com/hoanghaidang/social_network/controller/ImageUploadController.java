@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -24,7 +25,7 @@ public class ImageUploadController {
 
     @Operation(summary = "Upload", description = "Upload")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImage(@RequestParam("files") List<MultipartFile> file) {
+    public ResponseEntity<?> uploadImage(@RequestParam("files") List<MultipartFile> file) throws IOException {
         return imageService.uploadFiles(file);
     }
 

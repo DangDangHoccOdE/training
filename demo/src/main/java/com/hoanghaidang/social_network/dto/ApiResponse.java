@@ -1,4 +1,4 @@
-package com.hoanghaidang.social_network.entity;
+package com.hoanghaidang.social_network.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

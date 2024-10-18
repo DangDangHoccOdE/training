@@ -5,7 +5,7 @@ import com.hoanghaidang.social_network.dto.JwtResponse;
 import com.hoanghaidang.social_network.dto.LoginDto;
 import com.hoanghaidang.social_network.dto.RegistrationDto;
 import com.hoanghaidang.social_network.dto.UserDto;
-import com.hoanghaidang.social_network.entity.ApiResponse;
+import com.hoanghaidang.social_network.dto.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
@@ -27,7 +27,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
@@ -191,7 +190,7 @@ public class UserServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> userService.registerUser(registrationDto));
 
         assertEquals("Email is exists", exception.getMessage());
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
     }
 
     @Test
@@ -203,7 +202,7 @@ public class UserServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> userService.registerUser(registrationDto));
 
         assertEquals("Email is exists", exception.getMessage());
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
     }
 
     @Test
@@ -245,7 +244,7 @@ public class UserServiceTest {
 
         CustomException exception = assertThrows(CustomException.class, () -> userService.activeUser(user.getEmail()));
         assertEquals("User has been activated", exception.getMessage());
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
     }
 
     @Test
@@ -329,7 +328,7 @@ public class UserServiceTest {
         ResponseEntity<?> response = userService.validOtp(otp,user.getEmail());
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertTrue(response.getBody() instanceof JwtResponse);
+        assertInstanceOf(JwtResponse.class, response.getBody());
         JwtResponse jwtResponse = (JwtResponse) response.getBody();
         assertEquals("accessToken",jwtResponse.getAccessToken());
         assertEquals("refreshToken",jwtResponse.getRefreshToken());
@@ -365,7 +364,7 @@ public class UserServiceTest {
         user.setActive(true);
         mockAuthenticationAndUser(user);
 
-        ResponseEntity<UserDto> response = userService.updateProfile(user.getEmail(),userDto,authentication);
+        ResponseEntity<UserDto> response = userService.updateProfile(userDto,authentication);
         assertEquals(HttpStatus.OK,response.getStatusCode());
         assertEquals(userDto,response.getBody());
         verify(userRepository,times(1)).save(user);
@@ -376,42 +375,21 @@ public class UserServiceTest {
         user.setActive(true);
         when(userRepository.findByEmail(user.getEmail())).thenThrow(new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
-        CustomException exception = assertThrows(CustomException.class,()->userService.updateProfile(user.getEmail(),userDto,authentication));
+        CustomException exception = assertThrows(CustomException.class,()->userService.updateProfile(userDto,authentication));
 
         assertEquals(HttpStatus.NOT_FOUND,exception.getStatus());
         assertEquals("User is not found",exception.getMessage());
     }
 
     @Test
-    void testUpdateProfile_FailUserIsNotActive(){
+    void testUpdateProfile_FailUserIsNotActive() {
         mockAuthenticationAndUser(user);
         user.setActive(false);
 
-        CustomException exception = assertThrows(CustomException.class,()->userService.updateProfile(user.getEmail(),userDto,authentication));
+        CustomException exception = assertThrows(CustomException.class, () -> userService.updateProfile(userDto, authentication));
 
-        assertEquals(HttpStatus.BAD_REQUEST,exception.getStatus());
-        assertEquals("User has not been activated",exception.getMessage());
-    }
-
-    @Test
-    void testUpdateProfile_FailAuthentication() {
-        User other = User.builder()
-                .id(2L)
-                .email("o@gmail.com")
-                .isActive(true)
-                .build();
-
-        mockAuthenticationAndUser(user);
-
-        // Giả lập hành vi của userRepository
-        when(userRepository.findByEmail(other.getEmail())).thenReturn(Optional.of(other));
-
-        // Kiểm tra ngoại lệ AccessDeniedException
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () ->
-                userService.updateProfile(other.getEmail(), userDto, authentication)
-        );
-
-        assertEquals("You have not access", exception.getMessage());
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+        assertEquals("User has not been activated", exception.getMessage());
     }
 
     @Test
@@ -419,7 +397,6 @@ public class UserServiceTest {
         String email = user.getEmail();
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         String token = "Token 123";
-        when(jwtService.generateToken(email)).thenReturn(token);
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
 
         ResponseEntity<ApiResponse> response = userService.forgetPassword(email);
@@ -427,9 +404,6 @@ public class UserServiceTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        ApiResponse apiResponse = (ApiResponse) response.getBody();
-        assertEquals(apiResponse.getToken(),token);
-        verify(valueOperations).set(eq(token), eq(email), eq(5L), eq(TimeUnit.MINUTES));
     }
 
     @Test
@@ -450,8 +424,7 @@ public class UserServiceTest {
         String token = "Token 123456";
         String newPassword = "Dang972004@";
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get(token)).thenReturn(token);
-        when(jwtService.extractEmail(anyString(), eq(JwtService.SECRET_ACCESS_TOKEN))).thenReturn(email);
+        when(valueOperations.get(token)).thenReturn(email);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         user.setPassword(bCryptPasswordEncoder.encode(newPassword));
 
@@ -504,7 +477,7 @@ public class UserServiceTest {
 
         CustomException exception = assertThrows(CustomException.class,()->userService.changePassword(email,token,newPassword));
 
-        assertEquals(exception.getMessage(),"User information does not match");
-        assertEquals(HttpStatus.BAD_REQUEST,exception.getStatus());
+        assertEquals(exception.getMessage(),"Email does not match");
+        assertEquals(HttpStatus.FORBIDDEN,exception.getStatus());
     }
 }
