@@ -1,6 +1,8 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.hoanghaidang.social_network.dto.CommentDto;
+import com.hoanghaidang.social_network.dto.request.AddCommentDto;
+import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,16 +25,16 @@ public class CommentController {
 
     @Operation(summary = "Create Comment", description = "Create Comment")
     @PostMapping("comment_post")
-    public ResponseEntity<Notice> createComment(Authentication authentication, @Validated @RequestBody CommentDto commentDto) {
-        return commentService.createComment(authentication,commentDto.getPostId(),commentDto);
+    public ResponseEntity<Notice> createComment(Authentication authentication, @Validated @RequestBody AddCommentDto addCommentDto) {
+        return commentService.createComment(authentication, addCommentDto.getPostId(), addCommentDto);
     }
 
     @Operation(summary = "Edit Comment", description = "Edit Comment")
     @PutMapping("/edit/{id}")
-    public ResponseEntity<CommentDto> editComment(@PathVariable Long id,
-                                         @Validated @RequestBody CommentDto commentDto,
-                                         Authentication authentication) {
-        return commentService.editComment(authentication,id, commentDto);
+    public ResponseEntity<CommentResponse> editComment(@PathVariable Long id,
+                                                       @Validated @RequestBody EditCommentDto editCommentDto,
+                                                       Authentication authentication) {
+        return commentService.editComment(authentication,id, editCommentDto);
     }
 
     @Operation(summary = "Delete Comment", description = "Delete Comment")

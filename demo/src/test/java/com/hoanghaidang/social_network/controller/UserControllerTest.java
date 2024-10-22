@@ -2,8 +2,9 @@ package com.hoanghaidang.social_network.controller;
 
 import static org.hamcrest.CoreMatchers.is;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hoanghaidang.social_network.dto.*;
-import com.hoanghaidang.social_network.dto.ApiResponse;
+import com.hoanghaidang.social_network.dto.request.*;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -154,7 +155,11 @@ public class UserControllerTest {
                 .avatar(null)
                 .build();
 
-        when(userService.updateProfile(any(),any())).thenReturn(ResponseEntity.ok(userDto));
+        UserResponse userResponse = UserResponse.builder()
+                .firstName(userDto.getFirstName())
+                .build();
+
+        when(userService.updateProfile(any(),any())).thenReturn(ResponseEntity.ok(userResponse));
 
         mockMvc.perform(put("/api/user/update_profile")
                         .principal(authentication)
@@ -172,15 +177,13 @@ public class UserControllerTest {
                 .password("Dang972004@")
                 .build();
 
-        Notice notice = new Notice("OTP: 123456");
-        when(userService.login(any())).thenReturn(ResponseEntity.ok(notice));
+        when(userService.login(any())).thenReturn(ResponseEntity.ok().build());
 
         mockMvc.perform(post("/api/user/login")
                         .content(objectMapper.writeValueAsString(loginDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message",is(notice.getMessage())));
+                .andExpect(status().isOk());
     }
 
     @Test

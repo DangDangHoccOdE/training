@@ -1,15 +1,17 @@
 package com.hoanghaidang.social_network.service;
 
 import com.hoanghaidang.social_network.dao.*;
-import com.hoanghaidang.social_network.dto.JwtResponse;
-import com.hoanghaidang.social_network.dto.LoginDto;
-import com.hoanghaidang.social_network.dto.RegistrationDto;
-import com.hoanghaidang.social_network.dto.UserDto;
-import com.hoanghaidang.social_network.dto.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.JwtResponse;
+import com.hoanghaidang.social_network.dto.request.LoginDto;
+import com.hoanghaidang.social_network.dto.request.RegistrationDto;
+import com.hoanghaidang.social_network.dto.request.UserDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.UserMapper;
 import com.hoanghaidang.social_network.service.impl.EmailService;
 import com.hoanghaidang.social_network.service.impl.JwtService;
 import com.hoanghaidang.social_network.service.impl.UserService;
@@ -69,6 +71,8 @@ public class UserServiceTest {
     private ValueOperations<String, String> valueOperations;
     @Mock
     private EmailService emailService;
+    @Mock
+    private UserMapper userMapper;
 
     private User user;
     private Role role;
@@ -290,12 +294,11 @@ public class UserServiceTest {
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Act
-        ResponseEntity<Notice> response = userService.login(loginDto);
+        ResponseEntity<?> response = userService.login(loginDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().getMessage().startsWith("OTP: "));
         verify(valueOperations).set(eq(loginDto.getEmail()), anyString(), eq(5L), eq(TimeUnit.MINUTES));
     }
 
@@ -308,7 +311,7 @@ public class UserServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(false);
 
-        ResponseEntity<Notice> response = userService.login(loginDto);
+        ResponseEntity<?> response = userService.login(loginDto);
 
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
         assertNotNull(response.getBody());
@@ -364,9 +367,10 @@ public class UserServiceTest {
         user.setActive(true);
         mockAuthenticationAndUser(user);
 
-        ResponseEntity<UserDto> response = userService.updateProfile(userDto,authentication);
+        when(userMapper.toUserResponse(any())).thenReturn(new UserResponse());
+        ResponseEntity<UserResponse> response = userService.updateProfile(userDto,authentication);
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals(userDto,response.getBody());
+        assertNotNull(response.getBody());
         verify(userRepository,times(1)).save(user);
     }
 

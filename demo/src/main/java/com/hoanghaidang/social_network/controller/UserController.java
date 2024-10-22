@@ -1,7 +1,9 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.hoanghaidang.social_network.dto.*;
-import com.hoanghaidang.social_network.dto.ApiResponse;
+import com.hoanghaidang.social_network.dto.request.*;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.LoginResponse;
+import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
@@ -54,13 +56,13 @@ public class UserController {
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
     @PutMapping("/update_profile")
-    public ResponseEntity<UserDto> updateProfile(@Validated @RequestBody UserDto userDto,Authentication authentication) throws Exception{
+    public ResponseEntity<UserResponse> updateProfile(@Validated @RequestBody UserDto userDto, Authentication authentication) throws Exception{
         return iUserService.updateProfile(userDto,authentication);
     }
 
     @Operation(summary = "Login User", description = "Login User")
     @PostMapping("/login")
-    public ResponseEntity<Notice> login(@Validated @RequestBody LoginDto loginDto){
+    public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto){
         return iUserService.login(loginDto);
     }
 

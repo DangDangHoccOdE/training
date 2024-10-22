@@ -2,8 +2,10 @@ package com.hoanghaidang.social_network.service;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
+import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.impl.TimeLineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class TimeLineServiceTest {
@@ -37,6 +40,9 @@ public class TimeLineServiceTest {
 
     private User user;
     private Page<Post> posts;
+
+    @Mock
+    private PostMapper postMapper;
 
     @BeforeEach
     public void setup(){
@@ -61,6 +67,7 @@ public class TimeLineServiceTest {
         pageable = PageRequest.of(page, size);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(postRepository.findFriendPostsByEmail(user.getEmail(),pageable)).thenReturn(posts);
+        when(postMapper.toPostResponse(any())).thenReturn(new PostResponse());
 
         ResponseEntity<?> response = timeLineService.timeline(user.getEmail(),page,size);
 

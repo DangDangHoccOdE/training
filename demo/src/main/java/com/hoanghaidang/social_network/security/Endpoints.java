@@ -13,7 +13,9 @@ public class Endpoints {
     public static final String[] PUBLIC_GET_ENDPOINTS={
             "/v3/api-docs/**",
             "/swagger-ui/**", "/swagger-ui.html",
-            "/*"
+            "/*",
+            "/api/download",
+            "/uploads/**"
     };
 
 
@@ -41,7 +43,6 @@ public class Endpoints {
     };
 
     public static final String[] USER_GET_ENDPOINTS={
-            "/api/download",
             "/api/user/report",
             "/api/timeline"
     };

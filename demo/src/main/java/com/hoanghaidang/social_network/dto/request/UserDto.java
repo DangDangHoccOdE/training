@@ -1,6 +1,5 @@
-package com.hoanghaidang.social_network.dto;
+package com.hoanghaidang.social_network.dto.request;
 
-import com.hoanghaidang.social_network.annotation.ValidDirectory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +23,7 @@ public class UserDto {
     private String address;
 
     @Pattern(regexp = "Nam|Nữ", message = "Gender must be 'Nam', 'Nữ'")
+    @NotBlank(message = "Gender is required")
     private String gender;
 
     @NotNull(message = "Date of birth cannot be null")
@@ -33,6 +33,5 @@ public class UserDto {
     @Size(max = 100, message = "Job must not exceed 100 characters")
     private String job;
 
-    @ValidDirectory(message = "Avatar path is not valid")
     private String avatar;
 }

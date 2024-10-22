@@ -1,4 +1,4 @@
-package com.hoanghaidang.social_network.dto;
+package com.hoanghaidang.social_network.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

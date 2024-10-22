@@ -2,11 +2,13 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.PostDto;
+import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.inter.IPostService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,6 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -25,6 +29,7 @@ import java.time.LocalDateTime;
 public class PostService implements IPostService {
     PostRepository postRepository;
     UserRepository userRepository;
+    PostMapper postMapper;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -63,7 +68,10 @@ public class PostService implements IPostService {
     }
 
     @Override
-    public ResponseEntity<PostDto> editPost(Authentication authentication, long postId, PostDto postDto) {
+    public ResponseEntity<PostResponse> editPost(Authentication authentication, long postId, PostDto postDto) {
+        if (postDto.getContent() == null && postDto.getTitle() == null && postDto.getImage() == null) {
+            throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
+        }
         Post post = getPost(postId);
 
         User user = getAuthenticatedUser(authentication);
@@ -76,7 +84,9 @@ public class PostService implements IPostService {
         post.setImage(postDto.getImage());
 
         postRepository.save(post);
-        return ResponseEntity.ok(postDto);
+
+        PostResponse postResponse = postMapper.toPostResponse(post);
+        return ResponseEntity.ok(postResponse);
     }
 
     @Override

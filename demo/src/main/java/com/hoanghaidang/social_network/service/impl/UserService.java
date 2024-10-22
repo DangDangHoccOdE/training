@@ -1,10 +1,18 @@
 package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.*;
-import com.hoanghaidang.social_network.dto.*;
 
+import com.hoanghaidang.social_network.dto.request.LoginDto;
+import com.hoanghaidang.social_network.dto.request.RegistrationDto;
+import com.hoanghaidang.social_network.dto.request.ReportDto;
+import com.hoanghaidang.social_network.dto.request.UserDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.JwtResponse;
+import com.hoanghaidang.social_network.dto.response.LoginResponse;
+import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.UserMapper;
 import com.hoanghaidang.social_network.service.inter.IEmailService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import com.hoanghaidang.social_network.utils.ConvertStringToDate;
@@ -14,6 +22,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
@@ -48,6 +58,7 @@ public class UserService implements IUserService {
    FriendShipRepository friendShipRepository;
    CommentRepository commentRepository;
    LikeRepository likeRepository;
+    UserMapper userMapper;
 
     @Override
     public ResponseEntity<?> refreshToken(Authentication authentication,String refreshToken) {
@@ -174,7 +185,7 @@ public class UserService implements IUserService {
         return ResponseEntity.ok(new Notice("Active User completed"));
     }
 
-    public ResponseEntity<Notice> login(LoginDto loginDto){
+    public ResponseEntity<?> login(LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
@@ -183,7 +194,11 @@ public class UserService implements IUserService {
 
             // Save otp in redis with TTL 5min
             stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
-            return ResponseEntity.ok(new Notice("OTP: "+otp));
+
+            LoginResponse loginResponse = new LoginResponse();
+            loginResponse.setOtp(otp);
+            loginResponse.setEmail(loginDto.getEmail());
+            return ResponseEntity.ok(loginResponse);
         }
         return ResponseEntity.badRequest().body(new Notice("Username or password is incorrect!"));
     }
@@ -207,7 +222,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<UserDto> updateProfile(UserDto userDto,Authentication authentication) {
+    public ResponseEntity<UserResponse> updateProfile(UserDto userDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
@@ -223,7 +238,9 @@ public class UserService implements IUserService {
         user.setAddress(userDto.getAddress());
         user.setAvatar(userDto.getAvatar());
         userRepository.save(user);
-        return ResponseEntity.ok(userDto);
+
+        UserResponse userResponse = userMapper.toUserResponse(user);
+        return ResponseEntity.ok(userResponse);
     }
 
     @Override
@@ -234,7 +251,7 @@ public class UserService implements IUserService {
         String token = UUID.randomUUID().toString();
         // Save token -> redis TTL about 5 min
         stringRedisTemplate.opsForValue().set(token,user.getEmail(),5, TimeUnit.MINUTES);
-        String link = "http://localhost:8080/api/user/change_password";
+        String link = "http://localhost:8080/api/user/change_password/"+token;
         return ResponseEntity.ok(new ApiResponse(link,token));
     }
 

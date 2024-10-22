@@ -2,11 +2,13 @@ package com.hoanghaidang.social_network.service;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.PostDto;
+import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.impl.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,8 @@ public class PostServiceTests {
     private PostRepository postRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private PostMapper postMapper;
 
     private User user;
     private PostDto postDto;
@@ -92,12 +96,16 @@ public class PostServiceTests {
         mockAuthenticationAndUser(user);
         postDto.setContent("Edit post");
 
-        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        PostResponse postResponse = PostResponse.builder()
+                .content(postDto.getContent())
+                .build();
 
-        ResponseEntity<PostDto> response = postService.editPost(authentication,post.getId(),postDto);
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        when(postMapper.toPostResponse(any())).thenReturn(postResponse);
+        ResponseEntity<PostResponse> response = postService.editPost(authentication,post.getId(),postDto);
 
         assertEquals(response.getStatusCode(),HttpStatus.OK);
-        assertEquals(post.getContent(),postDto.getContent());
+        assertEquals(post.getContent(),postResponse.getContent());
         verify(postRepository,times(1)).save(post);
     }
 
@@ -110,6 +118,18 @@ public class PostServiceTests {
 
         assertEquals(exception.getMessage(),"Post could not be found");
         assertEquals(HttpStatus.NOT_FOUND,exception.getStatus());
+    }
+
+    @Test
+    void testEditPost_FailInfoEmpty(){
+        mockAuthenticationAndUser(user);
+
+        PostDto postDto1 = PostDto.builder().build();
+
+        CustomException exception = assertThrows(CustomException.class,()->postService.editPost(authentication,post.getId(),postDto1));
+
+        assertEquals(exception.getMessage(),"Post is required a content or a title or images");
+        assertEquals(HttpStatus.BAD_REQUEST,exception.getStatus());
     }
 
     @Test

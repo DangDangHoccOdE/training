@@ -1,6 +1,6 @@
 package com.hoanghaidang.social_network.utils;
 
-import com.hoanghaidang.social_network.dto.ReportDto;
+import com.hoanghaidang.social_network.dto.request.ReportDto;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 

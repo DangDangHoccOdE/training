@@ -1,7 +1,8 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hoanghaidang.social_network.dto.CommentDto;
+import com.hoanghaidang.social_network.dto.request.AddCommentDto;
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,8 @@ class CommentControllerTest {
 
     private ObjectMapper objectMapper;
 
-    private CommentDto commentDto;
+    private AddCommentDto addCommentDto;
+    private CommentResponse commentResponse;
 
     @BeforeEach
     void setUp() {
@@ -48,10 +50,14 @@ class CommentControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(commentController).build();
         objectMapper = new ObjectMapper();
 
-        commentDto = CommentDto.builder()
+        addCommentDto = AddCommentDto.builder()
                 .postId(1L)
                 .content("Test comment")
                 .image(null)
+                .build();
+
+        commentResponse = CommentResponse.builder()
+                .content(addCommentDto.getContent())
                 .build();
     }
 
@@ -62,25 +68,25 @@ class CommentControllerTest {
 
         mockMvc.perform(post("/api/comment/comment_post")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentDto))
+                        .content(objectMapper.writeValueAsString(addCommentDto))
                         .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(notice.getMessage())));
     }
 
     @Test
-    void editComment_ShouldReturnCommentDto_WhenSuccessful() throws Exception {
+    void editComment_ShouldReturnCommentResponse_WhenSuccessful() throws Exception {
         long commentId = 1;
         when(commentService.editComment(any(), anyLong(), any()))
-                .thenReturn(ResponseEntity.ok(commentDto));
+                .thenReturn(ResponseEntity.ok(commentResponse));
 
         mockMvc.perform(put("/api/comment/edit/{id}", commentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentDto))
+                        .content(objectMapper.writeValueAsString(addCommentDto))
                         .principal(authentication))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", is(commentDto.getContent())));
+                .andExpect(jsonPath("$.content", is(commentResponse.getContent())));
     }
 
 //    @Test

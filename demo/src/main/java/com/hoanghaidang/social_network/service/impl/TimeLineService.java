@@ -2,9 +2,11 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.inter.ITimeLineService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class TimeLineService implements ITimeLineService {
     PostRepository postRepository;
     UserRepository userRepository;
+    PostMapper postMapper;
 
     @Override
     public ResponseEntity<Map<String,Object>> timeline(String email, int page, int size) {
@@ -32,12 +35,13 @@ public class TimeLineService implements ITimeLineService {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Post> posts = postRepository.findFriendPostsByEmail(user.getEmail(), pageable);
+        Page<PostResponse> postResponses = posts.map(postMapper::toPostResponse);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("posts", posts.getContent());
-        response.put("currentPage", posts.getNumber());
-        response.put("totalItems", posts.getTotalElements());
-        response.put("totalPages", posts.getTotalPages());
+        response.put("posts", postResponses.getContent());
+        response.put("currentPage", postResponses.getNumber());
+        response.put("totalItems", postResponses.getTotalElements());
+        response.put("totalPages", postResponses.getTotalPages());
 
         return ResponseEntity.ok(response);
     }

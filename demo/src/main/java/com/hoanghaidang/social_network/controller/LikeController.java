@@ -1,7 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.hoanghaidang.social_network.dto.LikeCommentDto;
-import com.hoanghaidang.social_network.dto.LikePostDto;
+import com.hoanghaidang.social_network.dto.request.LikeCommentDto;
+import com.hoanghaidang.social_network.dto.request.LikePostDto;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.ILikeService;
 import io.swagger.v3.oas.annotations.Operation;

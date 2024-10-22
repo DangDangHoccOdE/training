@@ -1,4 +1,4 @@
-package com.hoanghaidang.social_network.dto;
+package com.hoanghaidang.social_network.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

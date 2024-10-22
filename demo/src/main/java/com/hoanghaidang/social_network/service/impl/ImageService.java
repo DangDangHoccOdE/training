@@ -1,6 +1,6 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.hoanghaidang.social_network.dto.UploadImageResponse;
+import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.exception.CustomException;
 import org.springframework.core.io.Resource;
@@ -47,10 +47,10 @@ public class ImageService {
                 throw new CustomException("One of the files exceeds the maximum allowed size (5MB)",HttpStatus.BAD_REQUEST);
             }
 
-            // Kiểm tra xem file có phải ảnh không
             BufferedImage image = ImageIO.read(file.getInputStream());
-            if (image == null) {
-                throw new CustomException("One of the files is not an image",HttpStatus.BAD_REQUEST);
+            String contentType = file.getContentType();
+            if (contentType == null || !isImage(contentType) || image == null) {
+                throw new CustomException("One of the files is not an image", HttpStatus.BAD_REQUEST);
             }
 
             try {
@@ -65,7 +65,7 @@ public class ImageService {
 
                 // Ghi file vào thư mục
                 Files.write(filePath, file.getBytes());
-                String imageUrl = "/uploads/" + fileName;
+                String imageUrl = "/" + fileName;
 
                 // Thêm đường dẫn vào StringBuilder
                 imageUrls.add(imageUrl);
@@ -79,8 +79,22 @@ public class ImageService {
         return ResponseEntity.status(HttpStatus.OK).body(UploadImageResponse.builder().images(imageUrls).build());
     }
 
+    private boolean isImage(String contentType) {
+        // Kiểm tra content type có phải là ảnh không
+        return contentType.equals(MediaType.IMAGE_JPEG_VALUE) ||
+                contentType.equals(MediaType.IMAGE_PNG_VALUE) ||
+                contentType.equals(MediaType.IMAGE_GIF_VALUE);
+    }
+
     public ResponseEntity<?> downloadImage(String filename) {
         try {
+            String fileExtension = "";
+            int lastIndex = filename.lastIndexOf(".");
+            if(lastIndex > 0){
+                fileExtension = filename.substring(lastIndex);
+            }
+
+            String newFileName = UUID.randomUUID().toString() + fileExtension;
             // Xác định đường dẫn file
             Path filePath = Path.of(UPLOAD_DIR).resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
@@ -96,7 +110,7 @@ public class ImageService {
                 }
 
                 // Đặt "Content-Disposition" để hiển thị hoặc download
-                String headerValue = "attachment; filename=\"" + filename + "\"";
+                String headerValue = "attachment; filename=\"" + newFileName + "\"";
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, headerValue) // Đặt header để download

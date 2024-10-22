@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.hoanghaidang.social_network.dto.PostDto;
+import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.IPostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,9 +30,9 @@ public class PostController {
 
     @Operation(summary = "Edit Post", description = "Edit Post")
     @PutMapping("/edit/{postId}")
-    public ResponseEntity<PostDto> editPost(Authentication authentication
-            ,@PathVariable long postId
-            ,@RequestBody PostDto postDto){
+    public ResponseEntity<PostResponse> editPost(Authentication authentication
+            , @PathVariable long postId
+            ,@Validated @RequestBody PostDto postDto){
         return iPostService.editPost(authentication,postId,postDto);
     }
 

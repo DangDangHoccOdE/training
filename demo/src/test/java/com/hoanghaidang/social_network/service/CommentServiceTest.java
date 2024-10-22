@@ -3,12 +3,15 @@ package com.hoanghaidang.social_network.service;
 import com.hoanghaidang.social_network.dao.CommentRepository;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.CommentDto;
+import com.hoanghaidang.social_network.dto.request.AddCommentDto;
+import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.CommentMapper;
 import com.hoanghaidang.social_network.service.impl.CommentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,10 +45,15 @@ public class CommentServiceTest {
     @Mock
     private Authentication authentication;
 
+    private CommentResponse commentResponse;
     private User mockUser;
     private Post mockPost;
     private Comment mockComment;
-    private CommentDto commentDto;
+    private AddCommentDto addCommentDto;
+    private EditCommentDto editCommentDto;
+
+    @Mock
+    private CommentMapper commentMapper;
 
     @BeforeEach
     void setup(){
@@ -64,10 +72,16 @@ public class CommentServiceTest {
         mockComment.setUser(mockUser);
         mockComment.setCreateAt(LocalDateTime.now());
 
-        commentDto = CommentDto.builder()
+        addCommentDto = AddCommentDto.builder()
                 .content("a")
                 .postId(1L)
                 .build();
+
+        editCommentDto = EditCommentDto.builder()
+                .content("a")
+                .build();
+
+        commentResponse = new CommentResponse();
     }
 
     @Test
@@ -75,7 +89,7 @@ public class CommentServiceTest {
         mockAuthenticationAndUser(mockUser);
         when(postRepository.findById(mockPost.getId())).thenReturn(Optional.of(mockPost));
 
-        ResponseEntity<?> response = commentService.createComment(authentication,mockPost.getId(),commentDto);
+        ResponseEntity<?> response = commentService.createComment(authentication,mockPost.getId(), addCommentDto);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
         assertEquals("Create comment completed",((Notice) Objects.requireNonNull(response.getBody())).getMessage());
@@ -89,7 +103,7 @@ public class CommentServiceTest {
         when(postRepository.findById(mockPost.getId())).thenReturn(Optional.of(mockPost));
         when(userRepository.findById(mockUser.getId())).thenThrow(new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
-        CustomException exception = assertThrows(CustomException.class, () -> commentService.createComment(authentication,mockPost.getId(),commentDto));
+        CustomException exception = assertThrows(CustomException.class, () -> commentService.createComment(authentication,mockPost.getId(), addCommentDto));
 
         assertEquals(exception.getMessage(), "User is not found");
         assertEquals(exception.getStatus(), HttpStatus.NOT_FOUND);
@@ -100,7 +114,7 @@ public class CommentServiceTest {
         mockAuthenticationAndUser(mockUser);
         when(postRepository.findById(mockPost.getId())).thenThrow(new CustomException("Post is not found",HttpStatus.NOT_FOUND));
 
-        CustomException exception = assertThrows(CustomException.class, () -> commentService.createComment(authentication,mockPost.getId(),commentDto));
+        CustomException exception = assertThrows(CustomException.class, () -> commentService.createComment(authentication,mockPost.getId(), addCommentDto));
 
         assertEquals(exception.getMessage(), "Post is not found");
         assertEquals(exception.getStatus(), HttpStatus.NOT_FOUND);
@@ -108,13 +122,13 @@ public class CommentServiceTest {
 
     @Test
     void testCreateComment_FailEmptyContentAndImage(){
-        commentDto.setContent(null);
-        commentDto.setImage(null);
+        addCommentDto.setContent(null);
+        addCommentDto.setImage(null);
 
         mockAuthenticationAndUser(mockUser);
         when(postRepository.findById(mockPost.getId())).thenReturn(Optional.of(mockPost));
 
-        CustomException exception = assertThrows(CustomException.class,()-> commentService.createComment(authentication,mockPost.getId(),commentDto));
+        CustomException exception = assertThrows(CustomException.class,()-> commentService.createComment(authentication,mockPost.getId(), addCommentDto));
 
         assertEquals("Images or Content is required",exception.getMessage());
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -124,11 +138,12 @@ public class CommentServiceTest {
     void testEditComment_FailNotOwner(){
         User other = new User();
         other.setEmail("b@gmail.com");
+        other.setId(2L);
 
         mockAuthenticationAndUser(other);
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
 
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,()-> commentService.editComment(authentication,mockComment.getId(),commentDto));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,()-> commentService.editComment(authentication,mockComment.getId(), editCommentDto));
 
         assertEquals("You do not have access!",exception.getMessage());
     }
@@ -138,10 +153,12 @@ public class CommentServiceTest {
         mockAuthenticationAndUser(mockUser);
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
 
-        ResponseEntity<CommentDto> response = commentService.editComment(authentication,mockComment.getId(),commentDto);
+        commentResponse.setContent(editCommentDto.getContent());
+        when(commentMapper.commentResponse(any())).thenReturn(commentResponse);
+        ResponseEntity<CommentResponse> response = commentService.editComment(authentication,mockComment.getId(), editCommentDto);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals(commentDto.getContent(), Objects.requireNonNull(response.getBody()).getContent());
+        assertEquals(editCommentDto.getContent(), Objects.requireNonNull(response.getBody()).getContent());
         verify(commentRepository).save(mockComment);
     }
 
@@ -150,20 +167,22 @@ public class CommentServiceTest {
         when(commentRepository.findById(mockComment.getId())).thenThrow(new CustomException("Comment is not found",HttpStatus.NOT_FOUND));
         mockAuthenticationAndUser(mockUser);
 
-        CustomException exception = assertThrows(CustomException.class,() -> commentService.editComment(authentication,mockComment.getId(),commentDto));
+        CustomException exception = assertThrows(CustomException.class,() -> commentService.editComment(authentication,mockComment.getId(), editCommentDto));
         assertEquals(exception.getMessage(),"Comment is not found");
         assertEquals(exception.getStatus(),HttpStatus.NOT_FOUND);
     }
 
     @Test
-    void testEditComment_FailCommentNotInPost(){
-        commentDto.setPostId(2L);
+    void testEditComment_FailValidInfoEmpty(){
+        editCommentDto.setContent(null);
+        editCommentDto.setImage(null);
+
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
         mockAuthenticationAndUser(mockUser);
 
-        CustomException exception = assertThrows(CustomException.class,() -> commentService.editComment(authentication,mockComment.getId(),commentDto));
-        assertEquals(exception.getMessage(),"Comment does not belong to this post");
-        assertEquals(exception.getStatus(),HttpStatus.CONFLICT);
+        CustomException exception = assertThrows(CustomException.class,() -> commentService.editComment(authentication,mockComment.getId(), editCommentDto));
+        assertEquals(exception.getMessage(),"Images or Content is required");
+        assertEquals(exception.getStatus(),HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -183,6 +202,7 @@ public class CommentServiceTest {
     @Test
     void testDeleteComment_FailNotOwner(){
         User other = new User();
+        other.setId(2L);
         other.setEmail("b@gmail.com");
 
         mockAuthenticationAndUser(other);

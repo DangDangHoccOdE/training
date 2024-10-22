@@ -1,4 +1,4 @@
-package com.hoanghaidang.social_network.dto;
+package com.hoanghaidang.social_network.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class CommentDto {
+public class AddCommentDto {
     @NotNull(message = "PostId is required")
     private long postId;
 

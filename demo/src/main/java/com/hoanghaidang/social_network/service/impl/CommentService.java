@@ -3,12 +3,15 @@ package com.hoanghaidang.social_network.service.impl;
 import com.hoanghaidang.social_network.dao.CommentRepository;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
-import com.hoanghaidang.social_network.dto.CommentDto;
+import com.hoanghaidang.social_network.dto.request.AddCommentDto;
+import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.CommentMapper;
 import com.hoanghaidang.social_network.service.inter.ICommentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -28,14 +31,15 @@ public class CommentService implements ICommentService {
     CommentRepository commentRepository;
     UserRepository userRepository;
     PostRepository postRepository;
+    CommentMapper commentMapper;
 
     @Override
-    public ResponseEntity<Notice> createComment(Authentication authentication, long postId, CommentDto commentDto) {
-        validateContent(commentDto);
+    public ResponseEntity<Notice> createComment(Authentication authentication, long postId, AddCommentDto addCommentDto) {
+        validateContent(addCommentDto);
 
         User user = getUser(authentication);
         Post post = getPost(postId);
-        Comment comment = createOrUpdateComment(new Comment(), commentDto, user, post);
+        Comment comment = createComment(new Comment(), addCommentDto, user, post);
 
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
@@ -45,18 +49,19 @@ public class CommentService implements ICommentService {
     }
 
     @Override
-    public ResponseEntity<CommentDto> editComment(Authentication authentication, Long commentId, CommentDto commentDto) {
-        validateContent(commentDto);
+    public ResponseEntity<CommentResponse> editComment(Authentication authentication, Long commentId, EditCommentDto editCommentDto) {
+        validateEditContent(editCommentDto);
 
         Comment comment = getComment(commentId);
         User user = getUser(authentication);
 
-        validateCommentOwnership(comment, user, commentDto.getPostId());
+        validateCommentOwnership(comment,user);
 
-        createOrUpdateComment(comment, commentDto, user, comment.getPost());
+        updateComment(comment, editCommentDto);
         commentRepository.save(comment);
 
-        return ResponseEntity.ok(commentDto);
+        CommentResponse commentResponse = commentMapper.commentResponse(comment);
+        return ResponseEntity.ok(commentResponse);
     }
 
     @Override
@@ -64,7 +69,7 @@ public class CommentService implements ICommentService {
         Comment comment = getComment(commentId);
         User user = getUser(authentication);
 
-        validateCommentOwnership(comment, user, comment.getPost().getId());
+        validateCommentOwnership(comment, user);
 
         Post post = comment.getPost();
         post.setCommentCount(post.getCommentCount() - 1);
@@ -75,8 +80,14 @@ public class CommentService implements ICommentService {
         return ResponseEntity.ok(new Notice("Delete comment completed"));
     }
 
-    private void validateContent(CommentDto commentDto) {
-        if ((commentDto.getImage() == null || commentDto.getImage().isEmpty()) && commentDto.getContent() == null) {
+    private void validateContent(AddCommentDto addCommentDto) {
+        if ((addCommentDto.getImage() == null || addCommentDto.getImage().isEmpty()) && addCommentDto.getContent() == null) {
+            throw new CustomException("Images or Content is required", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private void validateEditContent(EditCommentDto editCommentDto) {
+        if ((editCommentDto.getImage() == null || editCommentDto.getImage().isEmpty()) && editCommentDto.getContent() == null) {
             throw new CustomException("Images or Content is required", HttpStatus.BAD_REQUEST);
         }
     }
@@ -96,24 +107,28 @@ public class CommentService implements ICommentService {
                 .orElseThrow(() -> new CustomException("Comment is not found", HttpStatus.NOT_FOUND));
     }
 
-    private void validateCommentOwnership(Comment comment, User user, Long postId) {
-        if (comment.getPost().getId() != postId) {
-            throw new CustomException("Comment does not belong to this post", HttpStatus.CONFLICT);
-        }
-        if (!comment.getUser().equals(user)) {
+    private void validateCommentOwnership(Comment comment, User user) {
+        if (comment.getUser().getId() != user.getId()) {
             throw new AccessDeniedException("You do not have access!");
         }
     }
 
-    private Comment createOrUpdateComment(Comment comment, CommentDto commentDto, User user, Post post) {
+    private Comment createComment(Comment comment, AddCommentDto addCommentDto, User user, Post post) {
         comment.setUser(user);
         comment.setPost(post);
-        comment.setContent(commentDto.getContent());
-        comment.setImage(commentDto.getImage());
+        comment.setContent(addCommentDto.getContent());
+
+        comment.setImage(addCommentDto.getImage());
         comment.setUpdateAt(LocalDateTime.now());
         if (comment.getCreateAt() == null) {
             comment.setCreateAt(LocalDateTime.now());
         }
         return comment;
+    }
+
+    private void updateComment(Comment comment, EditCommentDto editCommentDto) {
+        comment.setContent(editCommentDto.getContent());
+        comment.setImage(editCommentDto.getImage());
+        comment.setUpdateAt(LocalDateTime.now());
     }
 }
