@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +18,6 @@ import java.time.LocalDateTime;
 public class ErrorDetails {
     private int status;
     private LocalDateTime timestamp;
-    private String message;
+    private HashMap<String, List<String>> message;
     private String details;
 }

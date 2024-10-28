@@ -1,7 +1,7 @@
 package com.hoanghaidang.social_network.dto.request;
 
+import com.hoanghaidang.social_network.Enum.Status;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,8 +19,7 @@ public class PostDto {
     private String content;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "Public|Private|Friends only",message = "Status must be 'Public' or 'Private' or 'Friends only'")
-    private String status;
+    private Status status;
 
     private List<String> image;
 

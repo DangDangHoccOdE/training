@@ -1,5 +1,8 @@
 package com.hoanghaidang.social_network.exception;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -18,62 +21,89 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalException extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(HttpStatus.UNAUTHORIZED.value(),LocalDateTime.now(),
-                ex.getMessage() + " Email or Password is incorrect", request.getDescription(false));
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("Email or Password is incorrect")
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
 
-        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<?> handleRuntimeException(CustomException customException) {
-        return new ResponseEntity<>(new Notice(customException.getMessage()), customException.getStatus() );
+    public ResponseEntity<ApiResponse<Void>> handleRuntimeException(CustomException customException) {
+            ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                    .status(customException.getStatus().value())
+                    .message(customException.getMessage())
+                    .build();
+        return ResponseEntity.status(customException.getStatus()).body(apiResponse);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex,WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(HttpStatus.FORBIDDEN.value(), LocalDateTime.now(),
-                ex.getMessage(),request.getDescription(false));
-
-        return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex,WebRequest request) {
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
 
     @ExceptionHandler(ExpiredJwtException.class) // Token hết hạn
-    public ResponseEntity<Notice> handleExpiredJwtException(ExpiredJwtException e){
-        System.out.println("ExpiredJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is expired"));
+    public ResponseEntity<ApiResponse<Void>> handleExpiredJwtException(ExpiredJwtException e){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Token is expired")
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
 
     @ExceptionHandler(UnsupportedJwtException.class) // Token không hỗ trợ
-    public ResponseEntity<?> handleUnsupportedJwtException(UnsupportedJwtException e){
-        System.out.println("UnsupportedJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is unsupported"));
+    public ResponseEntity<ApiResponse<Void>> handleUnsupportedJwtException(UnsupportedJwtException e){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Token is unsupported")
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
     @ExceptionHandler(MalformedJwtException.class) // token không đúng định dạng
-    public ResponseEntity<?> handleMalformedJwtException(MalformedJwtException e){
-        System.out.println("MalformedJwtException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Token is malformed"));
+    public ResponseEntity<ApiResponse<Void>> handleMalformedJwtException(MalformedJwtException e){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Token is malformed")
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
     @ExceptionHandler(SignatureException.class) // Chữ ký token không đúng
-    public ResponseEntity<?> handleSignatureException(SignatureException e){
-        System.out.println("SignatureException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("SignatureToken is not valid"));
+    public ResponseEntity<ApiResponse<Void>> handleSignatureException(SignatureException e){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("SignatureToken is not valid")
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
 
     @ExceptionHandler(IllegalArgumentException.class) // Token không hợp lệ
-    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
-        System.out.println("IllegalArgumentException: "+e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Notice("Info is not valid"));
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Info is not valid")
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
     }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(HttpStatus.BAD_REQUEST.value(),LocalDateTime.now(),
-                "Total Errors:" + ex.getErrorCount() + " First Error " + ex.getFieldError().getDefaultMessage(),request.getDescription(false));
+        HashMap<String, List<String>> errors = new HashMap<>();
+        ex.getFieldErrors().forEach(
+                error -> errors.computeIfAbsent(error.getField(), key->new ArrayList<>()).add(error.getDefaultMessage()));
 
+        ErrorDetails errorDetails = new ErrorDetails(HttpStatus.BAD_REQUEST.value(),LocalDateTime.now(),errors,request.getDescription(false));
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);    }
 }

@@ -8,6 +8,7 @@ public class Endpoints {
             "/api/user/validate_otp",
             "/v3/api-docs/**",
             "/swagger-ui/**", "/swagger-ui.html",
+            "/api/user/sendEmailActive"
     };
 
     public static final String[] PUBLIC_GET_ENDPOINTS={
@@ -15,9 +16,8 @@ public class Endpoints {
             "/swagger-ui/**", "/swagger-ui.html",
             "/*",
             "/api/download",
-            "/uploads/**"
+            "/uploads/**",
     };
-
 
     public static final String[] PUBLIC_PUT_ENDPOINTS={
             "/api/user/change_password",

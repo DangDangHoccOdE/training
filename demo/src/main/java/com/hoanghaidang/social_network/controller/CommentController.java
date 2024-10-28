@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
@@ -25,7 +26,7 @@ public class CommentController {
 
     @Operation(summary = "Create Comment", description = "Create Comment")
     @PostMapping("comment_post")
-    public ResponseEntity<Notice> createComment(Authentication authentication, @Validated @RequestBody AddCommentDto addCommentDto) {
+    public ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, @Validated @RequestBody AddCommentDto addCommentDto) {
         return commentService.createComment(authentication, addCommentDto.getPostId(), addCommentDto);
     }
 

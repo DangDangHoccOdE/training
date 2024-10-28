@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.filter;
 
 
+import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.service.IUserSecurityService;
 import com.hoanghaidang.social_network.service.impl.JwtService;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;

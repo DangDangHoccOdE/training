@@ -2,7 +2,7 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.*;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.dto.response.LoginResponse;
+import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
 import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
@@ -29,8 +29,14 @@ public class UserController {
     UserService userService;
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
+    public ResponseEntity<ApiResponse<?>> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
         return iUserService.refreshToken(authentication,refreshToken);
+    }
+
+    @Operation(summary = "Send email active",description = "Send email active")
+    @PostMapping("/sendEmailActive")
+    public ResponseEntity<ApiResponse<Void>> sendEmailActive(@RequestBody UserRequestDto userRequestDto){
+        return iUserService.sendEmailActive(userRequestDto);
     }
 
     @Operation(summary = "Report User",description = "Report User during a week")
@@ -41,14 +47,14 @@ public class UserController {
 
     @Operation(summary = "Forget Password", description = "Forget Password")
     @PostMapping("/forget_password")
-    public ResponseEntity<ApiResponse> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
+    public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
         return  userService.forgetPassword(userRequestDto.getEmail());
 
     }
 
     @Operation(summary = "Change Password", description = "Change Password")
     @PutMapping("/change_password")
-    public ResponseEntity<Notice> changePassword(@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
         return iUserService.changePassword(requestForgetPasswordDto.getEmail(),
                 requestForgetPasswordDto.getToken(),
                 requestForgetPasswordDto.getNewPassword());
@@ -56,31 +62,31 @@ public class UserController {
 
     @Operation(summary = "Update Profile", description = "Update Profile for User")
     @PutMapping("/update_profile")
-    public ResponseEntity<UserResponse> updateProfile(@Validated @RequestBody UserDto userDto, Authentication authentication) throws Exception{
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@Validated @RequestBody UserDto userDto, Authentication authentication) throws Exception{
         return iUserService.updateProfile(userDto,authentication);
     }
 
     @Operation(summary = "Login User", description = "Login User")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Validated @RequestBody LoginDto loginDto){
+    public ResponseEntity<ApiResponse<?>> login(@Validated @RequestBody LoginDto loginDto){
         return iUserService.login(loginDto);
     }
 
     @Operation(summary = "Register User", description = "Register User")
     @PostMapping("/register")
-    public ResponseEntity<Notice> registerUser(@Validated @RequestBody RegistrationDto registrationDto) throws Exception {
+    public ResponseEntity<ApiResponse<Void>> registerUser(@Validated @RequestBody RegistrationDto registrationDto) throws Exception {
         return iUserService.registerUser(registrationDto);
     }
 
     @Operation(summary = "Active User", description = "Active User")
     @PutMapping("/active_account")
-    public ResponseEntity<Notice> activeUser(@Validated @RequestBody UserRequestDto userRequestDto){
-        return iUserService.activeUser(userRequestDto.getEmail());
+    public ResponseEntity<ApiResponse<Void>> activeUser(@RequestParam("email") String email,@RequestParam("token") String token){
+        return iUserService.activeUser(email,token);
     }
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")
     @PostMapping("/validate_otp")
-    public ResponseEntity<?> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
+    public ResponseEntity<ApiResponse<?>> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
         return iUserService.validOtp(validateOtpDto.getOtp(),validateOtpDto.getEmail());
     }
 

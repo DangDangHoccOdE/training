@@ -3,7 +3,7 @@ package com.hoanghaidang.social_network.controller;
 import static org.hamcrest.CoreMatchers.is;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.*;
-import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
 import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
@@ -111,11 +111,11 @@ public class UserControllerTest {
                 .email(email)
                 .build();
 
-        ApiResponse apiResponse = ApiResponse.builder()
+        ForgetPasswordResponse forgetPasswordResponse = ForgetPasswordResponse.builder()
                 .link("http://localhost:8080/api/user/change_password/"+email)
                 .token("AccessToken")
                 .build();
-        when(userService.forgetPassword(anyString())).thenReturn(ResponseEntity.ok(apiResponse));
+        when(userService.forgetPassword(anyString())).thenReturn(ResponseEntity.ok(forgetPasswordResponse));
 
         mockMvc.perform(post("/api/user/forget_password")
                         .content(objectMapper.writeValueAsString(userRequestDto))

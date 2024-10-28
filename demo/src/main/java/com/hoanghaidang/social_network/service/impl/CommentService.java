@@ -5,6 +5,7 @@ import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Notice;
@@ -34,7 +35,7 @@ public class CommentService implements ICommentService {
     CommentMapper commentMapper;
 
     @Override
-    public ResponseEntity<Notice> createComment(Authentication authentication, long postId, AddCommentDto addCommentDto) {
+    public ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, long postId, AddCommentDto addCommentDto) {
         validateContent(addCommentDto);
 
         User user = getUser(authentication);
@@ -45,7 +46,13 @@ public class CommentService implements ICommentService {
         postRepository.save(post);
         commentRepository.save(comment);
 
-        return ResponseEntity.ok(new Notice("Create comment completed"));
+        CommentResponse commentResponse = commentMapper.commentResponse(comment);
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Create comment completed")
+                .data(commentResponse)
+                .status(HttpStatus.OK.value())
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override

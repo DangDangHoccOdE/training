@@ -5,7 +5,7 @@ import com.hoanghaidang.social_network.dto.response.JwtResponse;
 import com.hoanghaidang.social_network.dto.request.LoginDto;
 import com.hoanghaidang.social_network.dto.request.RegistrationDto;
 import com.hoanghaidang.social_network.dto.request.UserDto;
-import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
 import com.hoanghaidang.social_network.dto.response.UserResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Role;
@@ -403,7 +403,7 @@ public class UserServiceTest {
         String token = "Token 123";
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        ResponseEntity<ApiResponse> response = userService.forgetPassword(email);
+        ResponseEntity<ForgetPasswordResponse> response = userService.forgetPassword(email);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

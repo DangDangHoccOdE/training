@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ForgetPasswordReponse {
+public class ForgetPasswordResponse {
     private String link;
     private String token;
 }

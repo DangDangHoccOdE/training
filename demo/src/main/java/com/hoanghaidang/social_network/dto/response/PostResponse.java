@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.dto.response;
 
+import com.hoanghaidang.social_network.Enum.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,6 @@ public class PostResponse {
     private String title;
     private String content;
     private LocalDateTime createdAt;
-    private String status;
+    private Status status;
     private List<String> images;
 }

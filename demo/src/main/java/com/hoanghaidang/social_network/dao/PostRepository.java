@@ -18,7 +18,8 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             "SELECT f.user2 FROM FriendShip f WHERE f.user1.email = :email AND f.status = 'ACCEPTED') " +
             "OR p.user IN (" +
             "SELECT f.user1 FROM FriendShip f WHERE f.user2.email = :email AND f.status = 'ACCEPTED')) " +
-            "AND p.status IN ('Public', 'Friends only')  " +
+            "AND p.status IN (com.hoanghaidang.social_network.Enum.Status.PUBLIC, " +
+            "com.hoanghaidang.social_network.Enum.Status.FRIENDS_ONLY) " +
             "ORDER BY p.createAt DESC")
     Page<Post> findFriendPostsByEmail(String email, Pageable pageable);
 }
