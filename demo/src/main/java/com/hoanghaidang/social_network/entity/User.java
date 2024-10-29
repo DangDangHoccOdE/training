@@ -63,7 +63,7 @@ public class User {
     private List<Post> posts;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
-    private List<Like> likes;
+    private List<LikeComment> likeComments;
 
     @Column(name = "refreshToken")
     private String refreshToken;

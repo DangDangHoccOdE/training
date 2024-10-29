@@ -31,7 +31,8 @@ public class CommentMapper {
                 .updateAt(comment.getUpdateAt())
                 .userId(comment.getUser().getId())
                 .postId(comment.getPost().getId())
-                .likeCount(comment.getLikeCount());
+                .likeCount(comment.getLikeCount())
+                .id(comment.getId());
 
         return responseBuilder.build();
     }

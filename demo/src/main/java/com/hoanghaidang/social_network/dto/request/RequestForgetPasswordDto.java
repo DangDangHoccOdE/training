@@ -3,6 +3,7 @@ package com.hoanghaidang.social_network.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class RequestForgetPasswordDto {
-    @Email(message = "Email is not valid")
     @NotBlank(message = "Email is not empty")
+    @Email(message = "Email is not in the correct format")
+    @Size(max = 30, message = "Email must not exceed 30 characters")
     private String email;
 
     @NotBlank(message = "Token is not empty")
@@ -25,5 +27,6 @@ public class RequestForgetPasswordDto {
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message = "Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)."
     )
+    @Size(max = 20, message = "Password must not exceed 20 characters")
     private String newPassword;
 }

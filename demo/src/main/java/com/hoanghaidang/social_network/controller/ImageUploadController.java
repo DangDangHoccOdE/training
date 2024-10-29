@@ -1,5 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
+import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.service.impl.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +27,7 @@ public class ImageUploadController {
 
     @Operation(summary = "Upload", description = "Upload")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImage(@RequestParam("files") List<MultipartFile> file) throws IOException {
+    public ResponseEntity<ApiResponse<UploadImageResponse>> uploadImage(@RequestParam("files") List<MultipartFile> file) throws IOException {
         return imageService.uploadFiles(file);
     }
 

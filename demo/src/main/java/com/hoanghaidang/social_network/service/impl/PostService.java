@@ -3,6 +3,7 @@ package com.hoanghaidang.social_network.service.impl;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
@@ -47,7 +48,7 @@ public class PostService implements IPostService {
                 .orElseThrow(() -> new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
     }
     @Override
-    public ResponseEntity<Notice> createPost(Authentication authentication, PostDto postDto) {
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(Authentication authentication, PostDto postDto) {
         if (postDto.getContent() == null && postDto.getTitle() == null && postDto.getImage() == null) {
             throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
         }
@@ -64,11 +65,18 @@ public class PostService implements IPostService {
                 .build();
 
         postRepository.save(post);
-        return ResponseEntity.ok(new Notice("Create post completed!"));
+
+        PostResponse postResponse = postMapper.toPostResponse(post);
+
+        ApiResponse<PostResponse> apiResponse = ApiResponse.<PostResponse>builder()
+                .message("Create post completed!")
+                .data(postResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<PostResponse> editPost(Authentication authentication, long postId, PostDto postDto) {
+    public ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication, long postId, PostDto postDto) {
         if (postDto.getContent() == null && postDto.getTitle() == null && postDto.getImage() == null) {
             throw new CustomException("Post is required a content or a title or images", HttpStatus.BAD_REQUEST);
         }
@@ -86,18 +94,27 @@ public class PostService implements IPostService {
         postRepository.save(post);
 
         PostResponse postResponse = postMapper.toPostResponse(post);
-        return ResponseEntity.ok(postResponse);
+
+        ApiResponse<PostResponse> apiResponse = ApiResponse.<PostResponse>builder()
+                .message("Edit post completed")
+                .data(postResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<Notice> deletePost(Authentication authentication, long postId) {
+    public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication, long postId) {
         Post post = getPost(postId);
 
         User user = getAuthenticatedUser(authentication);
         checkPostOwnership(user, post);
 
         postRepository.delete(post);
-        return ResponseEntity.ok(new Notice("Delete post completed"));
+
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Delete post completed")
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 }
 

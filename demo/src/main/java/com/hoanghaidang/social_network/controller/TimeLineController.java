@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.controller;
 
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.service.impl.TimeLineService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,9 +23,9 @@ public class TimeLineController {
 
     @Operation(summary = "Time line", description = "Time line")
     @GetMapping("/timeline")
-    public ResponseEntity<Map<String,Object>> timeline(Authentication authentication,
-                                                       @RequestParam(defaultValue = "0") int page,
-                                                       @RequestParam(defaultValue = "5") int size
+    public ResponseEntity<ApiResponse<Map<String,Object>>> timeline(Authentication authentication,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "5") int size
     ) {
         return timeLineService.timeline(authentication.getName(), page,size);
     }

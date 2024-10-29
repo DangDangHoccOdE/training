@@ -1,9 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.*;
-import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
-import com.hoanghaidang.social_network.dto.response.UserResponse;
+import com.hoanghaidang.social_network.dto.response.*;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
@@ -29,7 +27,7 @@ public class UserController {
     UserService userService;
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
-    public ResponseEntity<ApiResponse<?>> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
+    public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
         return iUserService.refreshToken(authentication,refreshToken);
     }
 
@@ -68,7 +66,7 @@ public class UserController {
 
     @Operation(summary = "Login User", description = "Login User")
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@Validated @RequestBody LoginDto loginDto){
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Validated @RequestBody LoginDto loginDto){
         return iUserService.login(loginDto);
     }
 
@@ -86,7 +84,7 @@ public class UserController {
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")
     @PostMapping("/validate_otp")
-    public ResponseEntity<ApiResponse<?>> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
+    public ResponseEntity<ApiResponse<JwtResponse>> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
         return iUserService.validOtp(validateOtpDto.getOtp(),validateOtpDto.getEmail());
     }
 

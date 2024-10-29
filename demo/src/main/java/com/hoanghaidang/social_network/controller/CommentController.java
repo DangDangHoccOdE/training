@@ -32,7 +32,7 @@ public class CommentController {
 
     @Operation(summary = "Edit Comment", description = "Edit Comment")
     @PutMapping("/edit/{id}")
-    public ResponseEntity<CommentResponse> editComment(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<CommentResponse>> editComment(@PathVariable Long id,
                                                        @Validated @RequestBody EditCommentDto editCommentDto,
                                                        Authentication authentication) {
         return commentService.editComment(authentication,id, editCommentDto);
@@ -40,7 +40,7 @@ public class CommentController {
 
     @Operation(summary = "Delete Comment", description = "Delete Comment")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Notice> deleteComment(Authentication authentication,@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteComment(Authentication authentication,@PathVariable Long id) {
         return commentService.deleteComment(authentication,id);
     }
 }

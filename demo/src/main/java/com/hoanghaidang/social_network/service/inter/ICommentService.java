@@ -10,6 +10,6 @@ import org.springframework.security.core.Authentication;
 
 public interface ICommentService {
     ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, long postId, AddCommentDto addCommentDto);
-    ResponseEntity<Notice> deleteComment(Authentication authentication, Long id);
-    ResponseEntity<CommentResponse> editComment(Authentication authentication, Long id, EditCommentDto editCommentDto);
+    ResponseEntity<ApiResponse<Void>> deleteComment(Authentication authentication, Long id);
+    ResponseEntity<ApiResponse<CommentResponse>> editComment(Authentication authentication, Long id, EditCommentDto editCommentDto);
 }

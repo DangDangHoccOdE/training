@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CommentResponse {
+    private long id;
     private long imageCount;
     private String content;
     private LocalDateTime createAt;

@@ -8,7 +8,6 @@ import com.hoanghaidang.social_network.dto.request.EditCommentDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Comment;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -50,13 +49,12 @@ public class CommentService implements ICommentService {
         ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
                 .message("Create comment completed")
                 .data(commentResponse)
-                .status(HttpStatus.OK.value())
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<CommentResponse> editComment(Authentication authentication, Long commentId, EditCommentDto editCommentDto) {
+    public ResponseEntity<ApiResponse<CommentResponse>> editComment(Authentication authentication, Long commentId, EditCommentDto editCommentDto) {
         validateEditContent(editCommentDto);
 
         Comment comment = getComment(commentId);
@@ -68,11 +66,16 @@ public class CommentService implements ICommentService {
         commentRepository.save(comment);
 
         CommentResponse commentResponse = commentMapper.commentResponse(comment);
-        return ResponseEntity.ok(commentResponse);
+
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Edit comment completed")
+                .data(commentResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<Notice> deleteComment(Authentication authentication, Long commentId) {
+    public ResponseEntity<ApiResponse<Void>> deleteComment(Authentication authentication, Long commentId) {
         Comment comment = getComment(commentId);
         User user = getUser(authentication);
 
@@ -84,7 +87,10 @@ public class CommentService implements ICommentService {
 
         commentRepository.delete(comment);
 
-        return ResponseEntity.ok(new Notice("Delete comment completed"));
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Delete comment completed")
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     private void validateContent(AddCommentDto addCommentDto) {

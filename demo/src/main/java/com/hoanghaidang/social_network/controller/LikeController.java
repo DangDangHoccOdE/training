@@ -2,8 +2,11 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.LikeCommentDto;
 import com.hoanghaidang.social_network.dto.request.LikePostDto;
-import com.hoanghaidang.social_network.entity.Notice;
-import com.hoanghaidang.social_network.service.inter.ILikeService;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.LikeCommentResponse;
+import com.hoanghaidang.social_network.dto.response.LikePostResponse;
+import com.hoanghaidang.social_network.service.inter.ILikeCommentService;
+import com.hoanghaidang.social_network.service.inter.ILikePostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
@@ -20,27 +23,34 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 @Tag(name = "Like Management", description = "APIs for managing like")
 public class LikeController {
-    ILikeService iLikeService;
+    ILikeCommentService iLikeCommentService;
+    ILikePostService iLikePostService;
 
     @Operation(summary = "Like post", description = "Like post")
     @PostMapping("/like_post")
-    public ResponseEntity<Notice> likePost(
+    public ResponseEntity<ApiResponse<LikePostResponse>> likePost(
             @Validated @RequestBody LikePostDto likePostDto,
             Authentication authentication){
-        return iLikeService.likePost(authentication,likePostDto.getPostId());
+        return iLikePostService.likePost(authentication,likePostDto.getPostId());
     }
 
     @Operation(summary = "Like comment", description = "Like comment")
     @PostMapping("/like_comment")
-    public ResponseEntity<Notice> likeComment(
+    public ResponseEntity<ApiResponse<LikeCommentResponse>> likeComment(
             @Validated @RequestBody LikeCommentDto likeCommentDto,
             Authentication authentication){
-        return iLikeService.likeComment(authentication,likeCommentDto.getCommentId());
+        return iLikeCommentService.likeComment(authentication,likeCommentDto.getCommentId());
     }
 
-    @Operation(summary = "Unlike", description = "Unlike")
-    @DeleteMapping("/unlike/{id}")
-    public ResponseEntity<Notice> unlike(@PathVariable("id") long id, Authentication authentication){
-        return iLikeService.unlike(authentication,id);
+    @Operation(summary = "Unlike comment", description = "Unlike comment")
+    @DeleteMapping("/unlikeComment/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> unlikeComment(@PathVariable("commentId") long id, Authentication authentication){
+        return iLikeCommentService.unlike(authentication,id);
+    }
+
+    @Operation(summary = "Unlike post", description = "Unlike post")
+    @DeleteMapping("/unlikePost/{postId}")
+    public ResponseEntity<ApiResponse<Void>> unlikePost(@PathVariable("postId") long id, Authentication authentication){
+        return iLikePostService.unlike(authentication,id);
     }
 }

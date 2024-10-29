@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL) // Bỏ qua các trường null khi serializing
 public class ApiResponse<T> {
+    @Builder.Default
     private int status = HttpStatus.OK.value();
     private String message = "success";
     private T data;

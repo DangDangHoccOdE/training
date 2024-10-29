@@ -64,7 +64,7 @@ public class UserServiceTest {
     @Mock
     private CommentRepository commentRepository;
     @Mock
-    private LikeRepository likeRepository;
+    private LikePostRepository likePostRepository;
     @Mock
     private Authentication authentication;
     @Mock
@@ -259,7 +259,7 @@ public class UserServiceTest {
         mockAuthenticationAndUser(user);
         when(postRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
         when(commentRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
-        when(likeRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
+        when(likePostRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
         when(friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(user.getId(), "accepted", startDate, endDate)).thenReturn(1);
         when(friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(user.getId(), "accepted", startDate, endDate)).thenReturn(1);
 

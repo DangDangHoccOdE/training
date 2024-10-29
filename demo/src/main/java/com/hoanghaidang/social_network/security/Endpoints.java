@@ -51,6 +51,7 @@ public class Endpoints {
             "/api/friend_ship/delete/*",
             "/api/post/delete/*",
             "/api/comment/delete/*",
-            "/api/like/unlike/*"
+            "/api/like/unlikePost/*",
+            "/api/like/unlikeComment/*",
     };
 }

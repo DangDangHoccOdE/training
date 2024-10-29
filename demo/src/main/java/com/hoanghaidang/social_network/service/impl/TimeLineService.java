@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
@@ -30,7 +31,7 @@ public class TimeLineService implements ITimeLineService {
     PostMapper postMapper;
 
     @Override
-    public ResponseEntity<Map<String,Object>> timeline(String email, int page, int size) {
+    public ResponseEntity<ApiResponse<Map<String,Object>>> timeline(String email, int page, int size) {
         User user = userRepository.findByEmail(email).orElseThrow(()-> new CustomException("User is not found", HttpStatus.NOT_FOUND));
         Pageable pageable = PageRequest.of(page, size);
 
@@ -43,6 +44,9 @@ public class TimeLineService implements ITimeLineService {
         response.put("totalItems", postResponses.getTotalElements());
         response.put("totalPages", postResponses.getTotalPages());
 
-        return ResponseEntity.ok(response);
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 }

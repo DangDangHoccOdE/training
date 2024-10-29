@@ -31,7 +31,8 @@ public class PostMapper {
                 .createdAt(post.getCreateAt())
                 .likeCount(post.getLikeCount())
                 .status(post.getStatus())
-                .userId(post.getUser().getId());
+                .userId(post.getUser().getId())
+                .id(post.getId());
 
         return builder.build();
     }

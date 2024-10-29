@@ -1,7 +1,6 @@
 package com.hoanghaidang.social_network.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.hoanghaidang.social_network.Enum.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -61,5 +60,5 @@ public class Post {
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
-    private List<Like> likes;
+    private List<LikePost> likes;
 }

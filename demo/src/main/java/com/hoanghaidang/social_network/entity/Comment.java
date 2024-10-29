@@ -47,5 +47,5 @@ public class Comment {
     private Post post;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "comment")
-    private List<Like> likes;
+    private List<LikeComment> likeComments;
 }

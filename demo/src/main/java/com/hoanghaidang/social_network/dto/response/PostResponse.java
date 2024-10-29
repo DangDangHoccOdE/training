@@ -1,6 +1,6 @@
 package com.hoanghaidang.social_network.dto.response;
 
-import com.hoanghaidang.social_network.Enum.Status;
+import com.hoanghaidang.social_network.entity.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PostResponse {
+    private long id;
     private long imageCount;
     private long likeCount;
     private long commentCount;

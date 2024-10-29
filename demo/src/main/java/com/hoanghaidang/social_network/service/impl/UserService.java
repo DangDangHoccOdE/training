@@ -1,6 +1,5 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.google.protobuf.Api;
 import com.hoanghaidang.social_network.dao.*;
 
 import com.hoanghaidang.social_network.dto.request.*;
@@ -52,11 +51,11 @@ public class UserService implements IUserService {
    PostRepository postRepository;
    FriendShipRepository friendShipRepository;
    CommentRepository commentRepository;
-   LikeRepository likeRepository;
+   LikePostRepository likePostRepository;
     UserMapper userMapper;
 
     @Override
-    public ResponseEntity<ApiResponse<?>> refreshToken(Authentication authentication,String refreshToken) {
+    public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,String refreshToken) {
         User auth =  userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
@@ -79,7 +78,7 @@ public class UserService implements IUserService {
                     auth.setRefreshToken(newRefreshToken);
                     userRepository.save(auth);
 
-                    ApiResponse<?> apiResponse = ApiResponse.<JwtResponse>builder()
+                    ApiResponse<JwtResponse> apiResponse = ApiResponse.<JwtResponse>builder()
                             .data(new JwtResponse(newAccessToken,newRefreshToken))
                             .build();
                     return ResponseEntity.ok(apiResponse);
@@ -104,7 +103,7 @@ public class UserService implements IUserService {
         int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,"accepted",startDate,endDate);
         int newFriendshipCount = friendShipSenderCount + friendShipReceiverCount;
         int newCommentCount = commentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
-        int likeCount = likeRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+        int likeCount = likePostRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
 
         ReportDto reportDto = new ReportDto(postCount,newFriendshipCount,likeCount,newCommentCount);
 
@@ -157,7 +156,6 @@ public class UserService implements IUserService {
         userRepository.save(userSaved);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
                 .message("Register completed")
                 .build();
         return ResponseEntity.ok(apiResponse);
@@ -185,7 +183,6 @@ public class UserService implements IUserService {
         sendEmailActive(user.getEmail()); // send email active user
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
                 .message("Send email successfully")
                 .build();
         return ResponseEntity.ok(apiResponse);
@@ -215,12 +212,11 @@ public class UserService implements IUserService {
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .data(null)
                 .message("Active User completed")
-                .status(HttpStatus.OK.value())
                 .build();
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    public ResponseEntity<ApiResponse<?>> login(LoginDto loginDto){
+    public ResponseEntity<ApiResponse<LoginResponse>> login(LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
@@ -235,9 +231,7 @@ public class UserService implements IUserService {
             loginResponse.setOtp(otp);
             loginResponse.setEmail(loginDto.getEmail());
 
-            ApiResponse<?> apiResponse = ApiResponse.<LoginResponse>builder()
-                    .status(HttpStatus.OK.value())
-                    .message(null)
+            ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
                     .data(loginResponse)
                     .build();
             return ResponseEntity.ok(apiResponse);
@@ -245,7 +239,7 @@ public class UserService implements IUserService {
         throw new CustomException("Username or password is incorrect!",HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<ApiResponse<?>> validOtp(String otp,String email){
+    public ResponseEntity<ApiResponse<JwtResponse>> validOtp(String otp,String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));
 
@@ -258,17 +252,12 @@ public class UserService implements IUserService {
             userRepository.save(user);
             stringRedisTemplate.delete(email);
 
-            ApiResponse<?> apiResponse = ApiResponse.<JwtResponse>builder()
-                    .status(HttpStatus.OK.value())
+            ApiResponse<JwtResponse> apiResponse = ApiResponse.<JwtResponse>builder()
                     .data(new JwtResponse(token,refreshToken))
                     .build();
             return ResponseEntity.ok(apiResponse);
         }
-        ApiResponse<?> apiResponse = ApiResponse.<JwtResponse>builder()
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message("Otp is not correct!")
-                .build();
-        return ResponseEntity.badRequest().body(apiResponse);
+        throw new CustomException("Otp is not correct!",HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -293,7 +282,6 @@ public class UserService implements IUserService {
 
         ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
                 .data(userResponse)
-                .status(HttpStatus.OK.value())
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -310,7 +298,6 @@ public class UserService implements IUserService {
 
         ApiResponse<ForgetPasswordResponse> apiResponse = ApiResponse.<ForgetPasswordResponse>builder()
                 .data(new ForgetPasswordResponse(link,token))
-                .status(HttpStatus.OK.value())
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -337,7 +324,6 @@ public class UserService implements IUserService {
         stringRedisTemplate.delete(token);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
                 .message("Change password successful")
                 .build();
         return ResponseEntity.ok(apiResponse);

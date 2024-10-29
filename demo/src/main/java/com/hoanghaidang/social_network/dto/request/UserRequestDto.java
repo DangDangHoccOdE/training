@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Data
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class UserRequestDto {
-    @Email
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "Email is not empty")
+    @Email(message = "Email is not in the correct format")
     private String email;
 }

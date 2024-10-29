@@ -1,4 +1,4 @@
-package com.hoanghaidang.social_network.Enum;
+package com.hoanghaidang.social_network.entity;
 
 import lombok.Getter;
 

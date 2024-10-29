@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.exception.CustomException;
 import org.springframework.core.io.Resource;
@@ -27,10 +28,10 @@ import java.util.UUID;
 public class ImageService {
     private static final String UPLOAD_DIR = "uploads/";
 
-    public ResponseEntity<?> uploadFiles(List<MultipartFile> files) throws IOException {
+    public ResponseEntity<ApiResponse<UploadImageResponse>> uploadFiles(List<MultipartFile> files) throws IOException {
         // Kiểm tra nếu danh sách file trống hoặc không có file nào
         if (files == null || files.isEmpty()) {
-            return ResponseEntity.badRequest().body(new Notice("No files to upload"));
+            throw new CustomException("No file to upload", HttpStatus.BAD_REQUEST);
         }
 
         // Dùng StringBuilder để lưu các đường dẫn ảnh sau khi upload thành công
@@ -39,7 +40,7 @@ public class ImageService {
         for (MultipartFile file : files) {
             // Kiểm tra nếu file trống
             if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(new Notice("One of the files is empty"));
+                throw new CustomException("One of the files is empty", HttpStatus.BAD_REQUEST);
             }
 
             long maxSize = 5 * 1024 * 1024;
@@ -76,7 +77,11 @@ public class ImageService {
         }
 
         // Trả về danh sách đường dẫn các ảnh đã upload thành công
-        return ResponseEntity.status(HttpStatus.OK).body(UploadImageResponse.builder().images(imageUrls).build());
+
+        ApiResponse<UploadImageResponse> apiResponse = ApiResponse.<UploadImageResponse>builder()
+                .data(new UploadImageResponse(imageUrls))
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     private boolean isImage(String contentType) {

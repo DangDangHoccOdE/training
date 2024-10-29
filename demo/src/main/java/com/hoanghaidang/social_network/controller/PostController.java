@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.IPostService;
@@ -24,13 +25,13 @@ public class PostController {
 
     @Operation(summary = "Create Post", description = "Create Post")
     @PostMapping("/create_post")
-    public ResponseEntity<Notice> createPost(Authentication authentication, @Validated @RequestBody PostDto postDto){
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(Authentication authentication, @Validated @RequestBody PostDto postDto){
         return iPostService.createPost(authentication,postDto);
     }
 
     @Operation(summary = "Edit Post", description = "Edit Post")
     @PutMapping("/edit/{postId}")
-    public ResponseEntity<PostResponse> editPost(Authentication authentication
+    public ResponseEntity<ApiResponse<PostResponse>> editPost(Authentication authentication
             , @PathVariable long postId
             ,@Validated @RequestBody PostDto postDto){
         return iPostService.editPost(authentication,postId,postDto);
@@ -38,7 +39,7 @@ public class PostController {
 
     @Operation(summary = "Delete Post", description = "Delete Post")
     @DeleteMapping("/delete/{postId}")
-    public ResponseEntity<Notice> deletePost(Authentication authentication,@PathVariable long postId){
+    public ResponseEntity<ApiResponse<Void>> deletePost(Authentication authentication,@PathVariable long postId){
         return iPostService.deletePost(authentication,postId);
     }
 }

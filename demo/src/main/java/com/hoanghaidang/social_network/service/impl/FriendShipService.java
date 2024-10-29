@@ -2,10 +2,13 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dao.FriendShipRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 import com.hoanghaidang.social_network.entity.FriendShip;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
+import com.hoanghaidang.social_network.mapper.FriendshipMapper;
 import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import java.util.Optional;
 public class FriendShipService implements IFriendShipService {
     FriendShipRepository friendShipRepository;
     UserRepository userRepository;
+    FriendshipMapper friendshipMapper;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -49,7 +53,7 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<Notice> sendFriendRequest(Authentication authentication, Long receiverId) {
+    public ResponseEntity<ApiResponse<FriendshipResponse>> sendFriendRequest(Authentication authentication, Long receiverId) {
         User sender = getAuthenticatedUser(authentication);
         User receiver = userRepository.findUserById(receiverId)
                 .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
@@ -79,11 +83,17 @@ public class FriendShipService implements IFriendShipService {
 
         friendship.setStatus("pending");
         friendShipRepository.save(friendship);
-        return ResponseEntity.ok(new Notice("Send add friend is completed"));
+
+        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendship);
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Send add friend is completed")
+                .data(friendshipResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<Notice> acceptFriendRequest(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<ApiResponse<FriendshipResponse>> acceptFriendRequest(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
         checkFriendShipAccess(auth, friendShip);
@@ -91,11 +101,18 @@ public class FriendShipService implements IFriendShipService {
 
         friendShip.setStatus("accepted");
         friendShipRepository.save(friendShip);
-        return ResponseEntity.ok(new Notice("Add friend is completed"));
+
+        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendShip);
+
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Add friend is completed")
+                .data(friendshipResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<Notice> declineFriendShip(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<ApiResponse<FriendshipResponse>> declineFriendShip(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
         checkFriendShipAccess(auth, friendShip);
@@ -103,11 +120,18 @@ public class FriendShipService implements IFriendShipService {
 
         friendShip.setStatus("declined");
         friendShipRepository.save(friendShip);
-        return ResponseEntity.ok(new Notice("Friendship declined successfully"));
+
+        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendShip);
+
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Friendship declined successfully")
+                .data(friendshipResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<Notice> deleteFriendShip(Authentication authentication, Long friendShipId) {
+    public ResponseEntity<ApiResponse<Void>> deleteFriendShip(Authentication authentication, Long friendShipId) {
         FriendShip friendShip = getFriendShip(friendShipId);
         User auth = getAuthenticatedUser(authentication);
 
@@ -120,7 +144,11 @@ public class FriendShipService implements IFriendShipService {
         }
 
         friendShipRepository.delete(friendShip);
-        return ResponseEntity.ok(new Notice("Unfriended successfully"));
+
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Unfriended successfully")
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 }
 
