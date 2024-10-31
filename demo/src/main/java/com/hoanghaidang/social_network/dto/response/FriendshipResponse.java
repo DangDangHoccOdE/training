@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.dto.response;
 
+import com.hoanghaidang.social_network.enums.FriendStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +13,5 @@ import lombok.NoArgsConstructor;
 public class FriendshipResponse {
     private long id;
 
-    private String status;
+    private FriendStatus status;
 }

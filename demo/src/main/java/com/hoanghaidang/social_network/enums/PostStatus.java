@@ -1,9 +1,9 @@
-package com.hoanghaidang.social_network.entity;
+package com.hoanghaidang.social_network.enums;
 
 import lombok.Getter;
 
 @Getter
-public enum Status {
+public enum PostStatus {
     PUBLIC,
     PRIVATE,
     FRIENDS_ONLY

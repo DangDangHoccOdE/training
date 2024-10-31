@@ -1,6 +1,6 @@
 package com.hoanghaidang.social_network.dto.request;
 
-import com.hoanghaidang.social_network.entity.Status;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class PostDto {
     @Size(max = 255,message = "Content must not exceed 255 characters")
     private String content;
 
-    private Status status;
+    private PostStatus postStatus;
 
     private List<String> image;
 

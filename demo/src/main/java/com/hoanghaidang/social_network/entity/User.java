@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.entity;
 
+import com.hoanghaidang.social_network.enums.GenderEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +38,8 @@ public class User {
     private String job;
 
     @Column(name = "gender",nullable = false)
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private GenderEnum gender;
 
     @Lob
     @Column(name = "avatar",columnDefinition = "TEXT")

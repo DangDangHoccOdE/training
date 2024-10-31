@@ -46,13 +46,13 @@ public class PostControllerTest {
         postDto = PostDto.builder()
                 .content("abcd")
                 .title("avbc")
-                .status("Public")
+                .postStatus("Public")
                 .image(null)
                 .build();
 
         postResponse = PostResponse.builder()
                 .content(postDto.getContent())
-                .status(postDto.getStatus())
+                .postStatus(postDto.getPostStatus())
                 .title(postDto.getTitle())
                 .images(postDto.getImage())
                 .build();

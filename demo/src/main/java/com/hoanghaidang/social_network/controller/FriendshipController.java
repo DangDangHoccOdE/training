@@ -3,7 +3,6 @@ package com.hoanghaidang.social_network.controller;
 import com.hoanghaidang.social_network.dto.request.FriendshipDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,20 +29,20 @@ public class FriendshipController {
     }
 
     @Operation(summary = "Accept Friendship", description = "Accept Friendship")
-    @PutMapping("/accept/{friendshipId}")
-    public ResponseEntity<ApiResponse<FriendshipResponse>> acceptFriend(@PathVariable("friendshipId") Long friendshipId,Authentication authentication){
-        return iFriendShipService.acceptFriendRequest(authentication,friendshipId);
+    @PutMapping("/accept")
+    public ResponseEntity<ApiResponse<FriendshipResponse>> acceptFriend(@Validated @RequestBody FriendshipDto friendshipDto,Authentication authentication){
+        return iFriendShipService.acceptFriendRequest(authentication,friendshipDto.getReceiverId());
     }
 
     @Operation(summary = "Decline Friendship", description = "Decline Friendship")
-    @PutMapping("/decline/{friendshipId}")
-    public ResponseEntity<ApiResponse<FriendshipResponse>> declineFriendship(@PathVariable("friendshipId") Long friendshipId, Authentication authentication){
-        return iFriendShipService.declineFriendShip(authentication,friendshipId);
+    @PutMapping("/decline")
+    public ResponseEntity<ApiResponse<FriendshipResponse>> declineFriendship(@Validated @RequestBody FriendshipDto friendshipDto, Authentication authentication){
+        return iFriendShipService.declineFriendShip(authentication,friendshipDto.getReceiverId());
     }
 
     @Operation(summary = "Delete Friendship", description = "Delete Friendship")
-    @DeleteMapping("/delete/{friendshipId}")
-    public ResponseEntity<ApiResponse<Void>> deleteFriendship(@PathVariable("friendshipId") Long friendshipId,Authentication authentication){
-        return iFriendShipService.deleteFriendShip(authentication,friendshipId);
+    @DeleteMapping("/delete")
+    public ResponseEntity<ApiResponse<Void>> deleteFriendship(@Validated @RequestBody FriendshipDto friendshipDto,Authentication authentication){
+        return iFriendShipService.deleteFriendShip(authentication,friendshipDto.getReceiverId());
     }
 }

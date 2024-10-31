@@ -35,8 +35,8 @@ public class Endpoints {
     };
 
     public static final String[] USER_PUT_ENDPOINTS={
-            "/api/friend_ship/accept/*",
-            "/api/friend_ship/decline/*",
+            "/api/friend_ship/accept",
+            "/api/friend_ship/decline",
             "/api/user/update_profile",
             "/api/post/edit/*",
             "/api/comment/edit/*",
@@ -48,7 +48,7 @@ public class Endpoints {
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={
-            "/api/friend_ship/delete/*",
+            "/api/friend_ship/delete",
             "/api/post/delete/*",
             "/api/comment/delete/*",
             "/api/like/unlikePost/*",

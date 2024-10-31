@@ -1,6 +1,6 @@
 package com.hoanghaidang.social_network.dto.response;
 
-import com.hoanghaidang.social_network.entity.Status;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +22,6 @@ public class PostResponse {
     private String title;
     private String content;
     private LocalDateTime createdAt;
-    private Status status;
+    private PostStatus postStatus;
     private List<String> images;
 }

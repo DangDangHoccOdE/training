@@ -32,6 +32,7 @@ public class CommentService implements ICommentService {
     UserRepository userRepository;
     PostRepository postRepository;
     CommentMapper commentMapper;
+    ImageService imageService;
 
     @Override
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(Authentication authentication, long postId, AddCommentDto addCommentDto) {
@@ -85,6 +86,10 @@ public class CommentService implements ICommentService {
         post.setCommentCount(post.getCommentCount() - 1);
         postRepository.save(post);
 
+        for(String path : comment.getImage()){
+            String sanitizedPath = path.replace("/", "");
+            imageService.deleteImageFile(sanitizedPath);
+        }
         commentRepository.delete(comment);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()

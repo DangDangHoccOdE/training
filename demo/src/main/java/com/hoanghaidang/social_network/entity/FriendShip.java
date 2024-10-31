@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.entity;
 
+import com.hoanghaidang.social_network.enums.FriendStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +22,8 @@ public class FriendShip {
     private long id;
 
     @Column(name = "status",nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private FriendStatus status;
 
     @Column(name = "create_at",nullable = false,updatable = false)
     private LocalDateTime createAt;

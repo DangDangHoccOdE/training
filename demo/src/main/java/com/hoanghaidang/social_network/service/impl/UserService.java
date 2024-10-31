@@ -5,6 +5,7 @@ import com.hoanghaidang.social_network.dao.*;
 import com.hoanghaidang.social_network.dto.request.*;
 import com.hoanghaidang.social_network.dto.response.*;
 import com.hoanghaidang.social_network.entity.*;
+import com.hoanghaidang.social_network.enums.FriendStatus;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.mapper.UserMapper;
 import com.hoanghaidang.social_network.service.inter.IEmailService;
@@ -99,8 +100,8 @@ public class UserService implements IUserService {
 
         long userId = user.getId();
         int postCount = postRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
-        int friendShipSenderCount = friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(userId,"accepted",startDate,endDate);
-        int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,"accepted",startDate,endDate);
+        int friendShipSenderCount = friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(userId, FriendStatus.ACCEPTED,startDate,endDate);
+        int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,FriendStatus.ACCEPTED,startDate,endDate);
         int newFriendshipCount = friendShipSenderCount + friendShipReceiverCount;
         int newCommentCount = commentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
         int likeCount = likePostRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);

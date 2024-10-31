@@ -130,4 +130,13 @@ public class ImageService {
         }
     }
 
+    public void deleteImageFile(String filename) {
+        Path filePath = Paths.get("uploads/").resolve(filename).normalize();
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new CustomException("Failed to delete image file", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

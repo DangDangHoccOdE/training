@@ -30,7 +30,7 @@ public class PostMapper {
         builder.commentCount(post.getCommentCount())
                 .createdAt(post.getCreateAt())
                 .likeCount(post.getLikeCount())
-                .status(post.getStatus())
+                .postStatus(post.getPostStatus())
                 .userId(post.getUser().getId())
                 .id(post.getId());
 

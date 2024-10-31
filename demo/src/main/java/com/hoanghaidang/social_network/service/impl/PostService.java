@@ -5,7 +5,6 @@ import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.PostDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.exception.CustomException;
@@ -21,8 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -31,6 +28,7 @@ public class PostService implements IPostService {
     PostRepository postRepository;
     UserRepository userRepository;
     PostMapper postMapper;
+    ImageService imageService;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -59,7 +57,7 @@ public class PostService implements IPostService {
                 .title(postDto.getTitle())
                 .content(postDto.getContent())
                 .createAt(LocalDateTime.now())
-                .status(postDto.getStatus())
+                .postStatus(postDto.getPostStatus())
                 .image(postDto.getImage())
                 .user(user)
                 .build();
@@ -87,7 +85,7 @@ public class PostService implements IPostService {
 
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
-        post.setStatus(postDto.getStatus());
+        post.setPostStatus(postDto.getPostStatus());
         post.setUpdateAt(LocalDateTime.now());
         post.setImage(postDto.getImage());
 
@@ -109,6 +107,10 @@ public class PostService implements IPostService {
         User user = getAuthenticatedUser(authentication);
         checkPostOwnership(user, post);
 
+        for(String path : post.getImage()){
+            String sanitizedPath = path.replace("/", "");
+            imageService.deleteImageFile(sanitizedPath);
+        }
         postRepository.delete(post);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()

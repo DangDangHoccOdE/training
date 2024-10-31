@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,7 +36,8 @@ public class Post {
     private LocalDateTime updateAt;
 
     @Column(name = "status")
-    private Status status;
+    @Enumerated(EnumType.STRING)
+    private PostStatus postStatus;
 
     @Column(name = "like_count")
     private long likeCount=0;

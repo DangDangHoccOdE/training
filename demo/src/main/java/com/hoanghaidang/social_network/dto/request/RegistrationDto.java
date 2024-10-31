@@ -1,4 +1,5 @@
 package com.hoanghaidang.social_network.dto.request;
+import com.hoanghaidang.social_network.enums.GenderEnum;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,7 @@ public class RegistrationDto {
     @Size(max = 20, message = "Last name must not exceed 20 characters")
     private String lastName;
 
-    @NotBlank(message = "Gender is required")
-    @Pattern(regexp = "Nam|Nữ", message = "Gender must be 'Nam', 'Nữ'")
-    private String gender;
+    private GenderEnum gender;
 
     @NotNull(message = "Date of birth cannot be null")
     @Pattern(regexp = "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\\d{2}$",message = "Date is not format dd/MM/yyyy or Date is not valid")
