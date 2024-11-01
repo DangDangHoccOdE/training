@@ -221,7 +221,6 @@ public class UserService implements IUserService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
 
-
         if(authentication.isAuthenticated()){
             String otp = GetOtp.generateOtp(6); // 6 char
 

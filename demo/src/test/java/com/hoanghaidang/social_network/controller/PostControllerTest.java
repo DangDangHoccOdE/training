@@ -2,8 +2,10 @@ package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import com.hoanghaidang.social_network.service.impl.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,7 @@ public class PostControllerTest {
         postDto = PostDto.builder()
                 .content("abcd")
                 .title("avbc")
-                .postStatus("Public")
+                .postStatus(PostStatus.PUBLIC)
                 .image(null)
                 .build();
 
@@ -60,21 +62,30 @@ public class PostControllerTest {
 
     @Test
     void testCreatePost_Success() throws Exception{
-        Notice notice = new Notice("Create post completed!");
-        when(postService.createPost(any(),any())).thenReturn(ResponseEntity.ok(notice));
+        ApiResponse<PostResponse> apiResponse = ApiResponse.<PostResponse>builder()
+                .message("Create post completed!")
+                .data(postResponse)
+                .build();
+
+        when(postService.createPost(any(),any())).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(post("/api/post/create_post")
                 .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message",is(notice.getMessage())));
+                .andExpect(jsonPath("$.message",is(apiResponse.getMessage())));
     }
 
     @Test
     void testEditPost_Success() throws Exception{
+        ApiResponse<PostResponse> apiResponse = ApiResponse.<PostResponse>builder()
+                .message("Edit post completed")
+                .data(postResponse)
+                .build();
+
         long postId =1;
-        when(postService.editPost(any(),anyLong(),any())).thenReturn(ResponseEntity.ok(postResponse));
+        when(postService.editPost(any(),anyLong(),any())).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(put("/api/post/edit/{postId}",postId)
                         .principal(authentication)
@@ -85,15 +96,18 @@ public class PostControllerTest {
 
     @Test
     void testDeletePost_Success() throws Exception {
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Delete post completed")
+                .build();
+
         long postId = 1;
 
-        Notice notice = new Notice("Delete post completed");
-        when(postService.deletePost(any(),anyLong())).thenReturn(ResponseEntity.ok(notice));
+        when(postService.deletePost(any(),anyLong())).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(delete("/api/post/delete/{postId}",postId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .principal(authentication))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message",is(notice.getMessage())));
+                .andExpect(jsonPath("$.message",is(apiResponse.getMessage())));
     }
 }

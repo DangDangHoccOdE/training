@@ -2,6 +2,8 @@ package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.ImageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -45,7 +49,11 @@ public class ImageUploadControllerTest {
 
     @Test
     void testUploadImage_Success() throws Exception {
-        when(imageService.uploadFiles(anyList())).thenReturn(ResponseEntity.ok().build());
+        ApiResponse<UploadImageResponse> apiResponse = ApiResponse.<UploadImageResponse>builder()
+                .data(new UploadImageResponse(Arrays.asList("a.png")))
+                .build();
+
+        when(imageService.uploadFiles(anyList())).thenReturn(ResponseEntity.ok(apiResponse));
 
         MockMultipartFile file = new MockMultipartFile("files", "test.jpg", "image/jpeg", "test image".getBytes());
 

@@ -86,10 +86,13 @@ public class CommentService implements ICommentService {
         post.setCommentCount(post.getCommentCount() - 1);
         postRepository.save(post);
 
-        for(String path : comment.getImage()){
-            String sanitizedPath = path.replace("/", "");
-            imageService.deleteImageFile(sanitizedPath);
+        if(comment.getImage()!=null){
+            for(String path : comment.getImage()){
+                String sanitizedPath = path.replace("/", "");
+                imageService.deleteImageFile(sanitizedPath);
+            }
         }
+
         commentRepository.delete(comment);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()

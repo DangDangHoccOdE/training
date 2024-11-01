@@ -107,10 +107,13 @@ public class PostService implements IPostService {
         User user = getAuthenticatedUser(authentication);
         checkPostOwnership(user, post);
 
-        for(String path : post.getImage()){
-            String sanitizedPath = path.replace("/", "");
-            imageService.deleteImageFile(sanitizedPath);
+        if(post.getImage()!=null){
+            for(String path : post.getImage()){
+                String sanitizedPath = path.replace("/", "");
+                imageService.deleteImageFile(sanitizedPath);
+            }
         }
+
         postRepository.delete(post);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()

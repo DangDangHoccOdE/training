@@ -5,6 +5,7 @@ import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.request.EditCommentDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Notice;
@@ -86,13 +87,18 @@ public class CommentServiceTest {
 
     @Test
     void testCreateComment_Success(){
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Create comment completed")
+                .data(commentResponse)
+                .build();
+
         mockAuthenticationAndUser(mockUser);
         when(postRepository.findById(mockPost.getId())).thenReturn(Optional.of(mockPost));
 
-        ResponseEntity<?> response = commentService.createComment(authentication,mockPost.getId(), addCommentDto);
+        ResponseEntity<ApiResponse<CommentResponse>> response = commentService.createComment(authentication,mockPost.getId(), addCommentDto);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals("Create comment completed",((Notice) Objects.requireNonNull(response.getBody())).getMessage());
+        assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
         assertEquals(1,mockPost.getCommentCount());
         verify(commentRepository).save(any(Comment.class));
         verify(postRepository).save(mockPost);
@@ -150,15 +156,20 @@ public class CommentServiceTest {
 
     @Test
     void testEditComment_Success(){
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Edit comment completed")
+                .data(commentResponse)
+                .build();
+
         mockAuthenticationAndUser(mockUser);
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
 
         commentResponse.setContent(editCommentDto.getContent());
         when(commentMapper.commentResponse(any())).thenReturn(commentResponse);
-        ResponseEntity<CommentResponse> response = commentService.editComment(authentication,mockComment.getId(), editCommentDto);
+        ResponseEntity<ApiResponse<CommentResponse>> response = commentService.editComment(authentication,mockComment.getId(), editCommentDto);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals(editCommentDto.getContent(), Objects.requireNonNull(response.getBody()).getContent());
+        assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
         verify(commentRepository).save(mockComment);
     }
 
@@ -187,13 +198,17 @@ public class CommentServiceTest {
 
     @Test
     void deleteComment_Success(){
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Delete comment completed")
+                .build();
+
         mockAuthenticationAndUser(mockUser);
         when(commentRepository.findById(mockComment.getId())).thenReturn(Optional.of(mockComment));
 
-        ResponseEntity<?> response = commentService.deleteComment(authentication,mockComment.getId());
+        ResponseEntity<ApiResponse<Void>> response = commentService.deleteComment(authentication,mockComment.getId());
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals("Delete comment completed",((Notice) Objects.requireNonNull(response.getBody())).getMessage());
+        assertEquals(apiResponse.getMessage(),(Objects.requireNonNull(response.getBody())).getMessage());
         assertEquals(-1,mockPost.getCommentCount());
         verify(commentRepository).delete(mockComment);
         verify(postRepository).save(mockPost);

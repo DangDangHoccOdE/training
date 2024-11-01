@@ -107,7 +107,7 @@ public class ImageServiceTest {
 
     @Test
     void testDownloadImage_Success() throws Exception {
-        String filename = "4fd0f963-fbf8-4570-8db9-16d91c23b4ca_anh3.jpg";
+        String filename = "/4fd0f963-fbf8-4570-8db9-16d91c23b4ca_anh3.jpg";
         Path filePath = Paths.get("uploads/").resolve(filename).normalize();
 
         // Mock UrlResource

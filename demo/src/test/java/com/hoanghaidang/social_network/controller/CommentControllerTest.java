@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.AddCommentDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
@@ -63,22 +64,30 @@ class CommentControllerTest {
 
     @Test
     void createComment_ShouldReturnNotice_WhenSuccessful() throws Exception {
-        Notice notice = new Notice("Create comment completed");
-        when(commentService.createComment(any(), anyLong(), any())).thenReturn(ResponseEntity.ok(notice));
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Create comment completed")
+                .data(commentResponse)
+                .build();
+
+        when(commentService.createComment(any(), anyLong(), any())).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(post("/api/comment/comment_post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(addCommentDto))
                         .principal(authentication))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(notice.getMessage())));
+                .andExpect(jsonPath("$.message", is(apiResponse.getMessage())));
     }
 
     @Test
     void editComment_ShouldReturnCommentResponse_WhenSuccessful() throws Exception {
+        ApiResponse<CommentResponse> apiResponse = ApiResponse.<CommentResponse>builder()
+                .message("Edit comment completed")
+                .data(commentResponse)
+                .build();
         long commentId = 1;
         when(commentService.editComment(any(), anyLong(), any()))
-                .thenReturn(ResponseEntity.ok(commentResponse));
+                .thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(put("/api/comment/edit/{id}", commentId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +95,7 @@ class CommentControllerTest {
                         .principal(authentication))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", is(commentResponse.getContent())));
+                .andExpect(jsonPath("$.message", is(apiResponse.getMessage())));
     }
 
 //    @Test
@@ -107,14 +116,16 @@ class CommentControllerTest {
 
     @Test
     void deleteComment_ShouldReturnNotice_WhenSuccessful() throws Exception {
-        Notice notice = new Notice("Delete comment completed");
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Delete comment completed")
+                .build();
         long commentId = 1;
-        when(commentService.deleteComment(authentication, commentId)).thenReturn(ResponseEntity.ok(notice));
+        when(commentService.deleteComment(authentication, commentId)).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(delete("/api/comment/delete/{id}", commentId)
                         .principal(authentication))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(notice.getMessage())));
+                .andExpect(jsonPath("$.message", is(apiResponse.getMessage())));
     }
 
 //    @Test

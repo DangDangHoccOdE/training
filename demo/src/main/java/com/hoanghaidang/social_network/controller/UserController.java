@@ -33,7 +33,7 @@ public class UserController {
 
     @Operation(summary = "Send email active",description = "Send email active")
     @PostMapping("/sendEmailActive")
-    public ResponseEntity<ApiResponse<Void>> sendEmailActive(@RequestBody UserRequestDto userRequestDto){
+    public ResponseEntity<ApiResponse<Void>> sendEmailActive(@Validated @RequestBody UserRequestDto userRequestDto){
         return iUserService.sendEmailActive(userRequestDto);
     }
 

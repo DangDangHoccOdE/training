@@ -1,10 +1,13 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 
 import static org.mockito.Mockito.doReturn;
 
+import com.hoanghaidang.social_network.enums.FriendStatus;
 import com.hoanghaidang.social_network.service.impl.FriendShipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,7 @@ public class FriendshipControllerTest {
 
     private ObjectMapper objectMapper;
     private MockMvc mockMvc;
+    private long receiverId= 1;
 
     @BeforeEach
     void setup(){
@@ -48,11 +52,13 @@ public class FriendshipControllerTest {
 
     @Test
     void testSendFriendRequest_Success() throws Exception {
-        Notice notice = new Notice("Send add friend is completed");
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Send add friend is completed")
+                .data(new FriendshipResponse(1, FriendStatus.PENDING))
+                .build();
 
-        long receiverId = 1;
         // Mock service để trả về ResponseEntity với thông báo thành công
-        doReturn(ResponseEntity.ok(notice)).when(friendShipService).sendFriendRequest(any(), anyLong());
+        doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).sendFriendRequest(any(), anyLong());
 
         // Gọi API và kiểm tra phản hồi
         mockMvc.perform(post("/api/friend_ship/send_request")
@@ -67,14 +73,18 @@ public class FriendshipControllerTest {
 
     @Test
     void testAcceptFriendshipRequest_Success() throws Exception {
-        Notice notice = new Notice("Add friend is completed");
-        long friendshipId = 1;
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Add friend is completed")
+                .data(new FriendshipResponse(1, FriendStatus.ACCEPTED))
+                .build();
         // Mock service để trả về ResponseEntity với thông báo thành công
-        doReturn(ResponseEntity.ok(notice)).when(friendShipService).acceptFriendRequest(any(), anyLong());
+        doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).acceptFriendRequest(any(), anyLong());
 
         // Gọi API và kiểm tra phản hồi
-        mockMvc.perform(put("/api/friend_ship/accept/{friendshipId}", friendshipId)
-                        .principal(authentication))
+        mockMvc.perform(put("/api/friend_ship/accept")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(receiverId)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Add friend is completed"));
@@ -82,26 +92,34 @@ public class FriendshipControllerTest {
 
     @Test
     void testDeclineFriendship_Success() throws Exception {
-        long friendshipId = 1;
-        Notice notice = new Notice("Friendship declined successfully");
-        doReturn(ResponseEntity.ok(notice)).when(friendShipService).declineFriendShip(any(),anyLong());
+        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+                .message("Friendship declined successfully")
+                .data(new FriendshipResponse(1, FriendStatus.DECLINED))
+                .build();
+        doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).declineFriendShip(any(),anyLong());
 
-        mockMvc.perform(put("/api/friend_ship/decline/{friendshipId}",friendshipId)
-                .principal(authentication))
+        mockMvc.perform(put("/api/friend_ship/decline")
+                .principal(authentication)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(receiverId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(notice.getMessage()));
+                .andExpect(jsonPath("$.message").value(apiResponse.getMessage()));
     }
 
     @Test
     void testDeleteFriendship_Success() throws Exception {
-        long friendshipId = 1;
-        Notice notice = new Notice("Unfriended successfully");
-        doReturn(ResponseEntity.ok(notice)).when(friendShipService).deleteFriendShip(any(),anyLong());
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Unfriended successfully")
+                .build();
 
-        mockMvc.perform(delete("/api/friend_ship/delete/{friendshipId}",friendshipId)
-                        .principal(authentication))
+        doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).deleteFriendShip(any(),anyLong());
+
+        mockMvc.perform(delete("/api/friend_ship/delete")
+                        .principal(authentication)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(receiverId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(notice.getMessage()));
+                .andExpect(jsonPath("$.message").value(apiResponse.getMessage()));
     }
 
 }

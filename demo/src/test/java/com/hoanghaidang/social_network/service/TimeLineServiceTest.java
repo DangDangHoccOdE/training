@@ -2,6 +2,7 @@ package com.hoanghaidang.social_network.service;
 
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +71,7 @@ public class TimeLineServiceTest {
         when(postRepository.findFriendPostsByEmail(user.getEmail(),pageable)).thenReturn(posts);
         when(postMapper.toPostResponse(any())).thenReturn(new PostResponse());
 
-        ResponseEntity<?> response = timeLineService.timeline(user.getEmail(),page,size);
+        ResponseEntity<ApiResponse<Map<String,Object>>> response = timeLineService.timeline(user.getEmail(),page,size);
 
         assertEquals(response.getStatusCode(), HttpStatus.OK);
         assertNotNull(response.getBody());

@@ -121,7 +121,7 @@ public class ImageService {
                         .header(HttpHeaders.CONTENT_DISPOSITION, headerValue) // Đặt header để download
                         .body(resource);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Notice("File not found"));
+                throw new CustomException("File not found", HttpStatus.NOT_FOUND);
             }
         } catch (MalformedURLException e) {
             throw new CustomException("Malformed URL",HttpStatus.INTERNAL_SERVER_ERROR);

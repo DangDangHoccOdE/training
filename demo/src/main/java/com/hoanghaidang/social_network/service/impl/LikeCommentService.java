@@ -72,7 +72,6 @@ public class LikeCommentService implements ILikeCommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException("Comment is not found", HttpStatus.NOT_FOUND));
 
-
         LikeComment likeComment = likeCommentRepository.findByUserIdAndCommentId(user.getId(), commentId);
 
         if(likeComment == null){

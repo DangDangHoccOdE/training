@@ -1,5 +1,6 @@
 package com.hoanghaidang.social_network.controller;
 
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.service.impl.TimeLineService;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +55,11 @@ public class TimeLineControllerTest {
         responseMap.put("totalItems", posts.size());
         responseMap.put("totalPages", 1);
 
-        when(timeLineService.timeline(email, page, size)).thenReturn(ResponseEntity.ok(responseMap));
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(responseMap)
+                .build();
+
+        when(timeLineService.timeline(email, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(get("/api/timeline")
                 .principal(authentication)

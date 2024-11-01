@@ -3,6 +3,7 @@ package com.hoanghaidang.social_network.service;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.PostDto;
+import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Post;
@@ -28,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class PostServiceTests {
+public class PostServiceTest {
     @InjectMocks
     private PostService postService;
     @Mock
@@ -59,7 +60,7 @@ public class PostServiceTests {
     void testCreatePost_Success(){
         mockAuthenticationAndUser(user);
 
-        ResponseEntity<Notice> response = postService.createPost(authentication,postDto);
+        ResponseEntity<ApiResponse<PostResponse>> response = postService.createPost(authentication,postDto);
 
         assertEquals("Create post completed!", Objects.requireNonNull(response.getBody()).getMessage());
         assertEquals(HttpStatus.OK,response.getStatusCode());
@@ -102,7 +103,7 @@ public class PostServiceTests {
 
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
         when(postMapper.toPostResponse(any())).thenReturn(postResponse);
-        ResponseEntity<PostResponse> response = postService.editPost(authentication,post.getId(),postDto);
+        ResponseEntity<ApiResponse<PostResponse>> response = postService.editPost(authentication,post.getId(),postDto);
 
         assertEquals(response.getStatusCode(),HttpStatus.OK);
         assertEquals(post.getContent(),postResponse.getContent());
@@ -149,7 +150,7 @@ public class PostServiceTests {
         mockAuthenticationAndUser(user);
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
 
-        ResponseEntity<Notice> response = postService.deletePost(authentication,post.getId());
+        ResponseEntity<ApiResponse<Void>> response = postService.deletePost(authentication,post.getId());
 
         assertEquals(response.getStatusCode(),HttpStatus.OK);
         assertEquals("Delete post completed", Objects.requireNonNull(response.getBody()).getMessage());
