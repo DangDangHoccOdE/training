@@ -7,7 +7,6 @@ import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
 import com.hoanghaidang.social_network.dto.response.JwtResponse;
 import com.hoanghaidang.social_network.dto.response.UserResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.enums.GenderEnum;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -141,7 +140,6 @@ public class UserControllerTest {
 
     @Test
     void testChangePassword_Success() throws Exception {
-        Notice notice = new Notice("Change password successful");
         String email = "a@gmail.com";
         RequestForgetPasswordDto requestForgetPasswordDto = RequestForgetPasswordDto.builder()
                 .token("Token")

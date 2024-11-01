@@ -4,7 +4,6 @@ import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.request.EditCommentDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 

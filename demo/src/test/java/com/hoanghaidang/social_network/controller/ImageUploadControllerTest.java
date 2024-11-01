@@ -1,10 +1,8 @@
 package com.hoanghaidang.social_network.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.ImageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;

@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,13 +53,6 @@ public class FriendShipService implements IFriendShipService {
         }
     }
 
-    private void validateNonDuplicateFriendRequest(User sender, User receiver) {
-        if (friendShipRepository.findByUser1AndUser2(sender, receiver).isPresent() ||
-                friendShipRepository.findByUser1AndUser2(receiver, sender).isPresent()) {
-            throw new CustomException("Send duplicate invitations!", HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @Override
     public ResponseEntity<ApiResponse<FriendshipResponse>> sendFriendRequest(Authentication authentication, Long receiverId) {
         User sender = getAuthenticatedUser(authentication);
@@ -69,8 +63,18 @@ public class FriendShipService implements IFriendShipService {
             throw new CustomException("Sender and receiver cannot be the same person", HttpStatus.BAD_REQUEST);
         }
 
-        validateNonDuplicateFriendRequest(sender, receiver);
+        Optional<FriendShip> friendShip1 = friendShipRepository.findByUser1AndUser2(sender, receiver);
+        Optional<FriendShip> friendShip2 = friendShipRepository.findByUser1AndUser2(receiver, sender);
+        if ((friendShip1.isPresent() && friendShip1.get().getStatus().equals(FriendStatus.PENDING)) ||
+                (friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.PENDING))) {
+            throw new CustomException("Send duplicate invitations!", HttpStatus.BAD_REQUEST);
+        }
 
+        if(friendShip1.isPresent() && friendShip1.get().getStatus().equals(FriendStatus.DECLINED)) {
+            friendShipRepository.delete(friendShip1.get());
+        }else if(friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.DECLINED)){
+            friendShipRepository.delete(friendShip2.get());
+        }
         FriendShip friendship = new FriendShip();
         friendship.setUser1(sender);
         friendship.setUser2(receiver);

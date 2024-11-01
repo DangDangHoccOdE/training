@@ -3,7 +3,6 @@ package com.hoanghaidang.social_network.controller;
 import com.hoanghaidang.social_network.dto.request.PostDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.inter.IPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -54,6 +54,7 @@ public class UserService implements IUserService {
    CommentRepository commentRepository;
    LikePostRepository likePostRepository;
     UserMapper userMapper;
+    private final LikeCommentRepository likeCommentRepository;
 
     @Override
     public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,String refreshToken) {
@@ -104,9 +105,11 @@ public class UserService implements IUserService {
         int friendShipReceiverCount = friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(userId,FriendStatus.ACCEPTED,startDate,endDate);
         int newFriendshipCount = friendShipSenderCount + friendShipReceiverCount;
         int newCommentCount = commentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
-        int likeCount = likePostRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+        int likePostCount = likePostRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
+        int likeCommentCount = likeCommentRepository.countByUserIdAndCreateAtBetween(userId,startDate,endDate);
 
-        ReportDto reportDto = new ReportDto(postCount,newFriendshipCount,likeCount,newCommentCount);
+        int totalLike = likePostCount+likeCommentCount;
+        ReportDto reportDto = new ReportDto(postCount,newFriendshipCount,totalLike,newCommentCount);
 
         ByteArrayInputStream excelFile = ExcelGenerator.generateExcel(reportDto);
 
@@ -123,7 +126,7 @@ public class UserService implements IUserService {
     @Override
     @Transactional
     public ResponseEntity<ApiResponse<Void>> registerUser(RegistrationDto registrationDto) {
-        Optional<User> user = userRepository.findByEmail(registrationDto.getEmail());
+        Optional<User> user = userRepository.findByEmail(registrationDto.getEmail().toLowerCase());
         if(user.isPresent()){
             throw new CustomException("Email is exists",HttpStatus.CONFLICT);
         }
@@ -145,7 +148,7 @@ public class UserService implements IUserService {
                     .gender(registrationDto.getGender())
                     .roles(role)
                     .dateOfBirth(ConvertStringToDate.convert(registrationDto.getDateOfBirth()))
-                    .email(registrationDto.getEmail())
+                    .email(registrationDto.getEmail().toLowerCase())
                     .password(bCryptPasswordEncoder.encode(registrationDto.getPassword()))
                     .isActive(false)
                     .build();
@@ -219,17 +222,17 @@ public class UserService implements IUserService {
 
     public ResponseEntity<ApiResponse<LoginResponse>> login(LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginDto.getEmail().toLowerCase(),loginDto.getPassword()));
 
         if(authentication.isAuthenticated()){
             String otp = GetOtp.generateOtp(6); // 6 char
 
             // Save otp in redis with TTL 5min
-            stringRedisTemplate.opsForValue().set(loginDto.getEmail(),otp,5,TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(loginDto.getEmail().toLowerCase(),otp,5,TimeUnit.MINUTES);
 
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setOtp(otp);
-            loginResponse.setEmail(loginDto.getEmail());
+            loginResponse.setEmail(loginDto.getEmail().toLowerCase());
 
             ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
                     .data(loginResponse)

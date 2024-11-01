@@ -1,11 +1,11 @@
 package com.hoanghaidang.social_network.service;
 
 import com.hoanghaidang.social_network.dao.*;
+import com.hoanghaidang.social_network.dto.request.UserRequestDto;
 import com.hoanghaidang.social_network.dto.response.*;
 import com.hoanghaidang.social_network.dto.request.LoginDto;
 import com.hoanghaidang.social_network.dto.request.RegistrationDto;
 import com.hoanghaidang.social_network.dto.request.UserDto;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.entity.Role;
 import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.enums.FriendStatus;
@@ -15,7 +15,6 @@ import com.hoanghaidang.social_network.mapper.UserMapper;
 import com.hoanghaidang.social_network.service.impl.EmailService;
 import com.hoanghaidang.social_network.service.impl.JwtService;
 import com.hoanghaidang.social_network.service.impl.UserService;
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -125,7 +124,7 @@ public class UserServiceTest {
 
         ResponseEntity<ApiResponse<JwtResponse>> response = userService.refreshToken(authentication, refreshToken);
 
-        assertEquals(new JwtResponse(newAccessToken, newRefreshToken), response.getBody().getData());
+        assertEquals(new JwtResponse(newAccessToken, newRefreshToken), Objects.requireNonNull(response.getBody()).getData());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userRepository, times(1)).save(any(User.class));
     }
@@ -258,6 +257,28 @@ public class UserServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> userService.activeUser(user.getEmail(),"Token"));
         assertEquals("User has been activated", exception.getMessage());
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+    }
+
+    @Test
+    void testActiveUser_FailTokenIsExpired() {
+        user.setActive(false);
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(stringRedisTemplate.opsForValue().get(any())).thenThrow(new CustomException("Token is expired or token is not found", HttpStatus.NOT_FOUND));
+        CustomException exception = assertThrows(CustomException.class, () -> userService.activeUser(user.getEmail(),"Token"));
+        assertEquals("Token is expired or token is not found", exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+    }
+
+    @Test
+    void testActiveUser_FailTokenIsIncorrect() {
+        user.setActive(false);
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(stringRedisTemplate.opsForValue().get(any())).thenReturn("OtherToken");
+        CustomException exception = assertThrows(CustomException.class, () -> userService.activeUser(user.getEmail(),"Token"));
+        assertEquals("Token is incorrect", exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
     }
 
     @Test
@@ -439,7 +460,7 @@ public class UserServiceTest {
         ResponseEntity<ApiResponse<Void>> response = userService.changePassword(email,token,newPassword);
 
         assertEquals(HttpStatus.OK,response.getStatusCode());
-        assertEquals("Change password successful" ,response.getBody().getMessage());
+        assertEquals("Change password successful" , Objects.requireNonNull(response.getBody()).getMessage());
         verify(userRepository).save(user);
         verify(stringRedisTemplate).delete(eq(token));
     }
@@ -487,5 +508,55 @@ public class UserServiceTest {
 
         assertEquals(exception.getMessage(),"Email does not match");
         assertEquals(HttpStatus.FORBIDDEN,exception.getStatus());
+    }
+
+    @Test
+    void sendEmailActive_Success(){
+        UserRequestDto userRequestDto = UserRequestDto.builder()
+                .email("a@gmail.com")
+                .build();
+
+        user.setActive(false);
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Send email successfully")
+                .build();
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+
+        ResponseEntity<ApiResponse<Void>> response = userService.sendEmailActive(userRequestDto);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
+    }
+
+    @Test
+    void sendEmailActive_FailUserNotFound(){
+        UserRequestDto userRequestDto = UserRequestDto.builder()
+                .email("a@gmail.com")
+                .build();
+
+        user.setActive(false);
+
+        when(userRepository.findByEmail(anyString())).thenThrow(new CustomException("User is not found",HttpStatus.NOT_FOUND));
+
+        CustomException customException = assertThrows(CustomException.class,()->userService.sendEmailActive(userRequestDto));
+
+        assertEquals(HttpStatus.NOT_FOUND, customException.getStatus());
+        assertEquals("User is not found", Objects.requireNonNull(customException.getMessage()));
+    }
+
+    @Test
+    void sendEmailActive_FailUserHasBeenActivated(){
+        UserRequestDto userRequestDto = UserRequestDto.builder()
+                .email("a@gmail.com")
+                .build();
+
+        user.setActive(true);
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+
+        CustomException customException = assertThrows(CustomException.class,()->userService.sendEmailActive(userRequestDto));
+
+        assertEquals(HttpStatus.CONFLICT, customException.getStatus());
+        assertEquals("Account has been activated", Objects.requireNonNull(customException.getMessage()));
     }
 }

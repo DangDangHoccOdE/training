@@ -2,7 +2,6 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.*;
 import com.hoanghaidang.social_network.dto.response.*;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import com.hoanghaidang.social_network.service.inter.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,14 +45,14 @@ public class UserController {
     @Operation(summary = "Forget Password", description = "Forget Password")
     @PostMapping("/forget_password")
     public ResponseEntity<ApiResponse<ForgetPasswordResponse>> forgetPassword(@Validated @RequestBody UserRequestDto userRequestDto){
-        return  userService.forgetPassword(userRequestDto.getEmail());
+        return  userService.forgetPassword(userRequestDto.getEmail().toLowerCase());
 
     }
 
     @Operation(summary = "Change Password", description = "Change Password")
     @PutMapping("/change_password")
     public ResponseEntity<ApiResponse<Void>> changePassword(@Validated @RequestBody RequestForgetPasswordDto requestForgetPasswordDto){
-        return iUserService.changePassword(requestForgetPasswordDto.getEmail(),
+        return iUserService.changePassword(requestForgetPasswordDto.getEmail().toLowerCase(),
                 requestForgetPasswordDto.getToken(),
                 requestForgetPasswordDto.getNewPassword());
     }
@@ -79,13 +78,13 @@ public class UserController {
     @Operation(summary = "Active User", description = "Active User")
     @PutMapping("/active_account")
     public ResponseEntity<ApiResponse<Void>> activeUser(@RequestParam("email") String email,@RequestParam("token") String token){
-        return iUserService.activeUser(email,token);
+        return iUserService.activeUser(email.toLowerCase(),token);
     }
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")
     @PostMapping("/validate_otp")
     public ResponseEntity<ApiResponse<JwtResponse>> validateOtp(@Validated @RequestBody ValidateOtpDto validateOtpDto){
-        return iUserService.validOtp(validateOtpDto.getOtp(),validateOtpDto.getEmail());
+        return iUserService.validOtp(validateOtpDto.getOtp(),validateOtpDto.getEmail().toLowerCase());
     }
 
 }

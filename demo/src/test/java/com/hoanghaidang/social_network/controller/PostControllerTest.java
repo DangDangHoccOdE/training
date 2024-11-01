@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.PostDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.enums.PostStatus;
 import com.hoanghaidang.social_network.service.impl.PostService;
 import org.junit.jupiter.api.BeforeEach;

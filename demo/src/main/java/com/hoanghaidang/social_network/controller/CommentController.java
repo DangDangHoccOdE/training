@@ -4,7 +4,6 @@ import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.request.EditCommentDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,9 +1,6 @@
 package com.hoanghaidang.social_network.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;

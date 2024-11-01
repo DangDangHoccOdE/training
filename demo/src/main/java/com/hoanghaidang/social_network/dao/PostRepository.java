@@ -32,6 +32,6 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             "        ) " +
             "        AND p.postStatus = 'FRIENDS_ONLY'" +
             "    )" +
-            "    OR (p.postStatus = 'PUBLIC')")
+            "    OR (p.postStatus = 'PUBLIC') ORDER BY p.createAt DESC")
     Page<Post> findFriendPostsByEmail(@Param("email") String email, Pageable pageable);
 }

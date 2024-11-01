@@ -2,7 +2,6 @@ package com.hoanghaidang.social_network.service.impl;
 
 import com.hoanghaidang.social_network.dto.request.UploadImageResponse;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.exception.CustomException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;

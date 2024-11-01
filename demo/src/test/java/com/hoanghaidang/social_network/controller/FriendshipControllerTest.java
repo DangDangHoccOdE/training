@@ -3,7 +3,6 @@ package com.hoanghaidang.social_network.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 
 import static org.mockito.Mockito.doReturn;
 
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class FriendshipControllerTest {

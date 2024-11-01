@@ -5,7 +5,6 @@ import com.hoanghaidang.social_network.dto.request.RegistrationDto;
 import com.hoanghaidang.social_network.dto.request.UserDto;
 import com.hoanghaidang.social_network.dto.request.UserRequestDto;
 import com.hoanghaidang.social_network.dto.response.*;
-import com.hoanghaidang.social_network.entity.Notice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 

@@ -25,7 +25,7 @@ public class UserSecurityService implements IUserSecurityService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new CustomException("Email or Password is incorrect", HttpStatus.NOT_FOUND));
 
         if(!user.isActive()){

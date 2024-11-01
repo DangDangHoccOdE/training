@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.request.AddCommentDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.CommentResponse;
-import com.hoanghaidang.social_network.entity.Notice;
 import com.hoanghaidang.social_network.service.impl.CommentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,22 +97,6 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.message", is(apiResponse.getMessage())));
     }
 
-//    @Test
-//    void editComment_ShouldThrowException_WhenCommentNotFound() throws Exception {
-//        // Giả lập việc ném CustomException khi comment không tồn tại
-//        doThrow(new CustomException("Comment is not found",HttpStatus.NOT_FOUND))
-//                .when(commentService).editComment(any(), anyLong(), any());
-//
-//
-//        // Thực hiện request và kiểm tra kết quả
-//        mockMvc.perform(put("/api/comment/edit/{id}", 1L)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(commentDto))
-//                        .principal(authentication))
-//                .andExpect(status().isNotFound())
-//                .andExpect(jsonPath("$.message", is("Comment is not found")));
-//    }
-
     @Test
     void deleteComment_ShouldReturnNotice_WhenSuccessful() throws Exception {
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
@@ -128,14 +111,4 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.message", is(apiResponse.getMessage())));
     }
 
-//    @Test
-//    void deleteComment_ShouldThrowException_WhenCommentNotFound() throws Exception {
-//        long commentId = 1;
-//        when(commentService.deleteComment(authentication, commentId))
-//                .thenThrow(new CustomException("Comment is not found", HttpStatus.NOT_FOUND));
-//
-//        mockMvc.perform(delete("/api/comment/delete/{id}", commentId)
-//                        .principal(authentication))
-//                .andExpect(status().isNotFound());
-//    }
 }
