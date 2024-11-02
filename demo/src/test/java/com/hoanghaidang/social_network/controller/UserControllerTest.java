@@ -85,8 +85,9 @@ public class UserControllerTest {
 
     @Test
     void testActiveUser_Success() throws Exception {
-        UserRequestDto userRequestDto = UserRequestDto.builder()
-                .email("a@gmail.com")
+        ActiveAccountDto activeAccountDto = ActiveAccountDto.builder()
+                .email("a@amil.com")
+                .token("Token")
                 .build();
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
@@ -95,9 +96,9 @@ public class UserControllerTest {
                 .build();
 
         when(userService.activeUser(any(),any())).thenReturn(ResponseEntity.ok(apiResponse));
-        mockMvc.perform(put("/api/user/active_account?email={email}&token={token}",any(),any())
+        mockMvc.perform(put("/api/user/active_account")
                         .principal(authentication)
-                        .content(objectMapper.writeValueAsString(userRequestDto))
+                        .content(objectMapper.writeValueAsString(activeAccountDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message",is(apiResponse.getMessage())));

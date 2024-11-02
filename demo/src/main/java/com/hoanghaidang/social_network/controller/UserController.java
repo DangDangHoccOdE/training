@@ -24,6 +24,7 @@ import java.io.IOException;
 public class UserController {
     IUserService iUserService;
     UserService userService;
+
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
     public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,@RequestHeader String refreshToken){
@@ -77,8 +78,8 @@ public class UserController {
 
     @Operation(summary = "Active User", description = "Active User")
     @PutMapping("/active_account")
-    public ResponseEntity<ApiResponse<Void>> activeUser(@RequestParam("email") String email,@RequestParam("token") String token){
-        return iUserService.activeUser(email.toLowerCase(),token);
+    public ResponseEntity<ApiResponse<Void>> activeUser(@Validated @RequestBody ActiveAccountDto activeAccountDto){
+        return iUserService.activeUser(activeAccountDto.getEmail().toLowerCase(),activeAccountDto.getToken());
     }
 
     @Operation(summary = "Validate Otp", description = "Validate Otp")

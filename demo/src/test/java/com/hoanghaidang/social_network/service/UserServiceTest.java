@@ -66,13 +66,15 @@ public class UserServiceTest {
     @Mock
     private LikePostRepository likePostRepository;
     @Mock
+    private LikeCommentRepository likeCommentRepository;
+    @Mock
     private Authentication authentication;
     @Mock
     private ValueOperations<String, String> valueOperations;
     @Mock
-    private EmailService emailService;
-    @Mock
     private UserMapper userMapper;
+    @Mock
+    private EmailService emailService;
 
     private User user;
     private Role role;
@@ -290,6 +292,7 @@ public class UserServiceTest {
         when(postRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
         when(commentRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
         when(likePostRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
+        when(likeCommentRepository.countByUserIdAndCreateAtBetween(user.getId(), startDate, endDate)).thenReturn(1);
         when(friendShipRepository.countByUser1IdAndStatusAndUpdateAtBetween(user.getId(), FriendStatus.ACCEPTED, startDate, endDate)).thenReturn(1);
         when(friendShipRepository.countByUser2IdAndStatusAndUpdateAtBetween(user.getId(), FriendStatus.ACCEPTED, startDate, endDate)).thenReturn(1);
 
@@ -319,9 +322,11 @@ public class UserServiceTest {
                 .password("password123")
                 .build();
 
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(user));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        doNothing().when(emailService).sendMessage(anyString(), anyString(), anyString(), anyString());
 
         // Act
         ResponseEntity<?> response = userService.login(loginDto);
@@ -343,7 +348,7 @@ public class UserServiceTest {
 
         CustomException exception = assertThrows(CustomException.class,()->userService.login(loginDto));
 
-        assertEquals(HttpStatus.BAD_REQUEST,exception.getStatus());
+        assertEquals(HttpStatus.UNAUTHORIZED,exception.getStatus());
         assertNotNull(exception.getMessage());
         assertEquals("Username or password is incorrect!",exception.getMessage());
         verify(valueOperations,never()).set(anyString(),anyString(),anyLong(),any(TimeUnit.class));
@@ -375,7 +380,7 @@ public class UserServiceTest {
         CustomException exception = assertThrows(CustomException.class,()->userService.validOtp(otp,user.getEmail()));
 
         assertEquals(HttpStatus.BAD_REQUEST,exception.getStatus());
-        assertEquals("Otp is not correct!",exception.getMessage());
+        assertEquals("Otp is not correct or expired!",exception.getMessage());
     }
 
     @Test
@@ -522,6 +527,7 @@ public class UserServiceTest {
                 .build();
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        doNothing().when(emailService).sendMessage(anyString(), anyString(), anyString(), anyString());
 
         ResponseEntity<ApiResponse<Void>> response = userService.sendEmailActive(userRequestDto);
 

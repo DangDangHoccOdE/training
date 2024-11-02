@@ -17,7 +17,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -65,6 +69,20 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST,Endpoints.USER_POST_ENDPOINT).authenticated()
                         .requestMatchers(HttpMethod.DELETE,Endpoints.USER_DELETE_ENDPOINTS).authenticated()
         )
+                .cors(cors->{
+                    cors.configurationSource(request -> {
+                        CorsConfiguration configuration = new CorsConfiguration();
+                        configuration.addAllowedOrigin((Endpoints.front_end_host)); // Thêm đươờng dẫn Frontend
+                        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
+                        configuration.addAllowedHeader("*"); // permission sth can access
+                        configuration.setAllowCredentials(true);
+                        configuration.setMaxAge(3600L);
+
+                        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                        source.registerCorsConfiguration("/**",configuration);
+                        return configuration;
+                    });
+                })
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e->e.accessDeniedHandler(customAccessDeniedHandler))
                 .csrf(AbstractHttpConfigurer::disable)

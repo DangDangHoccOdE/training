@@ -1,6 +1,8 @@
 package com.hoanghaidang.social_network.security;
 
 public class Endpoints {
+    public static final String front_end_host = "http://localhost:3000";
+
     public static final String[] PUBLIC_POST_ENDPOINTS={
             "/api/user/register",
             "/api/user/login",
@@ -17,6 +19,7 @@ public class Endpoints {
             "/*",
             "/api/download",
             "/uploads/**",
+            "/users/search/existsByEmail/**"
     };
 
     public static final String[] PUBLIC_PUT_ENDPOINTS={

@@ -169,7 +169,7 @@ public class UserService implements IUserService {
         String token = UUID.randomUUID().toString();
         String subject = "Kích hoạt tài khoản của bạn";
         String text = "Vui lòng click vào đường dẫn sau để kích hoạt tài khoản: "+email;
-        String url = "http://localhost:8080/api/user/active_account?email="+email+"&token="+token;
+        String url = "http://localhost:3000/user/active_account?email="+email+"&token="+token;
         text+= "<br/> <a href="+url+">"+url+"</a>";
 
         stringRedisTemplate.opsForValue().set(email,token,10, TimeUnit.MINUTES);
@@ -197,7 +197,7 @@ public class UserService implements IUserService {
     public ResponseEntity<ApiResponse<Void>> activeUser(String email,String token){
         String tokenActive = stringRedisTemplate.opsForValue().get(email);
         if(tokenActive == null){
-            throw new CustomException("Token is expired or token is not found",HttpStatus.NOT_FOUND);
+            throw new CustomException("Token is expired or token is not found",HttpStatus.BAD_REQUEST);
         }
 
         if(!tokenActive.equals(token)){
@@ -212,6 +212,7 @@ public class UserService implements IUserService {
         }
         user.setActive(true);
         userRepository.save(user);
+        stringRedisTemplate.delete(email);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .data(null)
@@ -220,11 +221,25 @@ public class UserService implements IUserService {
         return ResponseEntity.ok().body(apiResponse);
     }
 
+    private void sendEmailLoginOtp(String email,String otp){
+        String subject = "Xác thực tài khoản";
+        String text = "Vui lòng click vào đường dẫn sau để xác thực tài khoản: "+email;
+        String url = "http://localhost:3000/user/validate_otp?email="+email+"&otp="+otp;
+        text+= "<br/> <a href="+url+">"+url+"</a>";
+
+        iEmailService.sendMessage("danghoangtest1@gmail.com",email,subject,text);
+    }
+
     public ResponseEntity<ApiResponse<LoginResponse>> login(LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail().toLowerCase(),loginDto.getPassword()));
 
         if(authentication.isAuthenticated()){
+            User user = userRepository.findByEmail(authentication.getName()).get();
+            if(!user.isActive()){
+                throw new CustomException("Account has not been activated",HttpStatus.FORBIDDEN);
+            }
+
             String otp = GetOtp.generateOtp(6); // 6 char
 
             // Save otp in redis with TTL 5min
@@ -234,12 +249,14 @@ public class UserService implements IUserService {
             loginResponse.setOtp(otp);
             loginResponse.setEmail(loginDto.getEmail().toLowerCase());
 
+            sendEmailLoginOtp(loginDto.getEmail(),otp);
+
             ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
                     .data(loginResponse)
                     .build();
             return ResponseEntity.ok(apiResponse);
         }
-        throw new CustomException("Username or password is incorrect!",HttpStatus.BAD_REQUEST);
+        throw new CustomException("Username or password is incorrect!",HttpStatus.UNAUTHORIZED);
     }
 
     public ResponseEntity<ApiResponse<JwtResponse>> validOtp(String otp,String email){
@@ -259,8 +276,9 @@ public class UserService implements IUserService {
                     .data(new JwtResponse(token,refreshToken))
                     .build();
             return ResponseEntity.ok(apiResponse);
+        }else{
+            throw new CustomException("Otp is not correct or expired!",HttpStatus.BAD_REQUEST);
         }
-        throw new CustomException("Otp is not correct!",HttpStatus.BAD_REQUEST);
     }
 
     @Override
