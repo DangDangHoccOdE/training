@@ -3,19 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Box, Button, Container, Divider, Paper, TextField, Typography } from "@mui/material";
 import axios from 'axios';
+import OtpModal from "../modal/OtpModal";
 
 const LoginPage=()=>{
     const navigate = useNavigate();
     const {isLoggedIn} = useAuth();
     const [notice,setNotice] = useState("");
     const [isLoading,setIsLoading] = useState(false);
+    const [showModal,setShowModal] = useState(false);
 
     const [formData,setFormData] = useState({
         email:'',
         password:'',
     })
 
-    console.log("is" +isLoggedIn)
     useEffect(()=>{
         if(isLoggedIn){
             const redirectPath = localStorage.getItem('redirectPath') || "/";
@@ -53,16 +54,13 @@ const LoginPage=()=>{
                 }
             }catch(error){
                 console.log("Đăng nhập không thành công",error);
-                const errorDetail = error.response.data.status;
+                const errorDetail = error?.response?.data?.status;
                 if(errorDetail === 403){
-                    localStorage.setItem("email",formData.email);
-                    setNotice("Đăng nhập thành công!"); // not activated
+                    // localStorage.setItem("email",formData.email);
+                    // navigate("/send_active_account");
 
-                    setTimeout(()=>{
-                        navigate("/send_active_account");
-                    },2000);
-
-                }else if(errorDetail === 404){
+                    setShowModal(true);
+                }else{
                     setNotice("Tài khoản hoặc mật khẩu không chính xác!");
                 }
             }finally{
@@ -120,6 +118,28 @@ const LoginPage=()=>{
         navigate("/signUp");
         return;
     }
+
+    const handleClose=()=>{
+        setShowModal(false);
+    }
+
+    const handleOtpSubmit = async (otp: string) => {
+        try {
+            const email = localStorage.getItem("email");
+            const response = await axios.post("http://localhost:8080/api/user/verify-otp", {
+                email,
+                otp,
+            });
+            if (response.status === 200) {
+                setNotice("Xác nhận OTP thành công!");
+                setShowModal(false);
+                navigate("/"); // Điều hướng đến trang sau khi xác thực OTP thành công
+            }
+        } catch (error) {
+            setNotice("OTP không chính xác. Vui lòng thử lại.");
+        }
+    };
+
 
     return(
         <Container maxWidth="sm">
@@ -218,7 +238,11 @@ const LoginPage=()=>{
             <Typography variant="subtitle1" sx={{mt:2}} component='h5' align="center" color='black'>
                 Tạo Trang dành cho người nổi tiếng, thương hiệu hoặc doanh nghiệp.
             </Typography>
-          
+            <OtpModal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                onSubmitOtp={handleOtpSubmit}
+            />
         </Container>
     )
 }

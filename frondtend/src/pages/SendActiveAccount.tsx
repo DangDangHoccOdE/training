@@ -13,7 +13,7 @@ const SendActiveAccount = () => {
         setNotice("");
         setIsSending(true);
         try {
-            const url = `http://localhost:8080/api/user/sendEmailActive`;
+            const url:string = `http://localhost:8080/api/user/sendEmailActive`;
             const response = await axios.post(url, { email: email });
 
             if (response.status === 200) {                  
@@ -40,7 +40,7 @@ const SendActiveAccount = () => {
                 alignItems="center" 
                 justifyContent="center" 
                 height="100vh" 
-                bgcolor="#f9f9f9"
+                bgcolor="#f5f5f5"
                 p={4}
                 borderRadius={2}
                 boxShadow={3}

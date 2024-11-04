@@ -29,12 +29,10 @@ const ValidOtp=()=>{
             }catch(error){
                 console.log("Kích hoạt tài khoản không thành công",error);
                 const errorDetail = error.response.data.status;
-                if(errorDetail === 404){
-                    setNotice("Không tìm thấy người dùng!");
-                }else if(errorDetail === 400){
-                    setNotice("Mã otp không chính xác hoặc bị hết hạn!");
-                }else if(errorDetail === 409){
-                    setNotice("Tài khoản của bạn đã được kích hoạt");
+                if(errorDetail === 409){
+                    setNotice("Tài khoản của bạn đã được kích hoạt!");
+                }else{
+                    setNotice("Kích hoạt không thành công, vui lòng thử lại sau!");
                 }
                 setIsActivated(false);
         }

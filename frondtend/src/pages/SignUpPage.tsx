@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { Box, Button, Container, Divider, FormControl, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { Info } from 'lucide-react';
 import axios from 'axios';
+import { parse, isValid, isFuture, differenceInYears } from 'date-fns';
 
 const SignUpPage=()=>{
     const {isLoggedIn} = useAuth();
@@ -63,12 +64,12 @@ const SignUpPage=()=>{
                     },
                 });
 
-                if(response.status === 200){
+                if(response?.status === 200){
                     setNotice("Đăng ký tài khoản thành công");
                 }
 
             }catch(error){
-                if(error.status === 409){
+                if(error?.status === 409){
                     setNotice("Tài khoản email đã tồn tại!");
                 }else{
                     setNotice("Đăng ký thất bại, đã xảy ra lỗi trong quá trình đăng ký tài khoản!")
@@ -96,24 +97,42 @@ const SignUpPage=()=>{
     }
 
     // date of birth
-    const [noticeDateOfBirth,setNoticeDateOfBirth] = useState("");
-    const checkValidDateOfBirth = ()=> {
-        const {day, month, year} = formData;
-        if(!day || !month || !year){
+    const [noticeDateOfBirth, setNoticeDateOfBirth] = useState("");
+
+    const checkValidDateOfBirth = () => {
+        const { day, month, year } = formData;
+
+        if (!day || !month || !year) {
             setNoticeDateOfBirth("Vui lòng chọn ngày, tháng và năm sinh!");
             return true;
         }
-        const today = new Date();
-        const birthDate = new Date(parseInt(year),parseInt(month) -1 , parseInt(day));
-    
-        if(birthDate > today){
+
+        // Tạo đối tượng ngày sinh từ chuỗi ngày, tháng, năm
+        const birthDate = parse(`${year}-${month}-${day}`, 'yyyy-MM-dd', new Date());
+
+        // Kiểm tra ngày sinh hợp lệ
+        if (!isValid(birthDate)) {
+            setNoticeDateOfBirth("Ngày, tháng, năm không hợp lệ. Vui lòng nhập lại.");
+            return true;
+        }
+
+        // Kiểm tra ngày sinh không phải là ngày trong tương lai
+        if (isFuture(birthDate)) {
             setNoticeDateOfBirth("Hình như bạn đã nhập sai thông tin. Hãy nhớ dùng đúng ngày sinh nhật thật của mình nhé.");
             return true;
-        }else{
-            setNoticeDateOfBirth("");
-            return false;
         }
-    }
+
+        // Kiểm tra tuổi tối thiểu (ví dụ: 13 tuổi)
+        const ageLimit = 13;
+        if (differenceInYears(new Date(), birthDate) < ageLimit) {
+            setNoticeDateOfBirth(`Bạn phải đủ ${ageLimit} tuổi để sử dụng dịch vụ.`);
+            return true;
+        }
+
+        // Nếu hợp lệ, xóa thông báo lỗi
+        setNoticeDateOfBirth("");
+        return false;
+    };
 
     // password
     const [noticePassword,setNoticePassword] = useState("");
