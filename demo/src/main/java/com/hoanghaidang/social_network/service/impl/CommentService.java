@@ -140,7 +140,6 @@ public class CommentService implements ICommentService {
         comment.setContent(addCommentDto.getContent());
 
         comment.setImage(addCommentDto.getImage());
-        comment.setUpdateAt(LocalDateTime.now());
         if (comment.getCreateAt() == null) {
             comment.setCreateAt(LocalDateTime.now());
         }

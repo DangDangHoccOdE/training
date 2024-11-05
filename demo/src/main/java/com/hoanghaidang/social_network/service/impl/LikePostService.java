@@ -1,19 +1,13 @@
 package com.hoanghaidang.social_network.service.impl;
 
-import com.hoanghaidang.social_network.dao.CommentRepository;
-import com.hoanghaidang.social_network.dao.LikePostRepository;
-import com.hoanghaidang.social_network.dao.PostRepository;
-import com.hoanghaidang.social_network.dao.UserRepository;
+import com.hoanghaidang.social_network.dao.*;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 import com.hoanghaidang.social_network.dto.response.LikePostResponse;
-import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.enums.FriendStatus;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.mapper.LikeMapper;
-import com.hoanghaidang.social_network.mapper.PostMapper;
-import com.hoanghaidang.social_network.service.inter.ILikeCommentService;
 import com.hoanghaidang.social_network.service.inter.ILikePostService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -40,7 +34,7 @@ public class LikePostService implements ILikePostService {
     PostRepository postRepository;
     UserRepository userRepository;
     LikeMapper likeMapper;
-    PostMapper postMapper;
+    FriendShipRepository friendShipRepository;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -51,11 +45,17 @@ public class LikePostService implements ILikePostService {
             return likePostRepository.findByUserIdAndPostId(userId, postId);
     }
 
+    private FriendShip findFriendship(User user1, User user2) {
+        return friendShipRepository.findByUser1AndUser2(user1, user2)
+                .or(() -> friendShipRepository.findByUser1AndUser2(user2, user1))
+                .orElseThrow(() -> new AccessDeniedException("You do not have access!"));
+    }
+
     @Override
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLikePostList(Authentication authentication, int page, int size) {
         User user = getAuthenticatedUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
 
         Page<LikePost> likePosts = likePostRepository.findLikePostByUser(user, pageable);
 
@@ -81,6 +81,18 @@ public class LikePostService implements ILikePostService {
                 .orElseThrow(() -> new CustomException("The post is not found", HttpStatus.NOT_FOUND));
 
         User user = getAuthenticatedUser(authentication);
+
+        User auth = post.getUser();
+        if(user.getId()!=auth.getId() && post.getPostStatus().equals(PostStatus.PRIVATE)){
+            throw new AccessDeniedException("You do not have access!");
+        }
+
+        if(post.getPostStatus().equals(PostStatus.FRIENDS_ONLY) ){
+            FriendShip friendShip = findFriendship(user, auth);
+            if(friendShip != null && !friendShip.getStatus().equals(FriendStatus.ACCEPTED)){
+                throw new AccessDeniedException("You do not have access!");
+            }
+        }
 
         if (checkDuplicateLike(user.getId(), postId) != null) {
             throw new CustomException("Like is duplicate!", HttpStatus.CONFLICT);

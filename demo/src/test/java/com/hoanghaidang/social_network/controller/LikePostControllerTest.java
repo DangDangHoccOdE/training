@@ -4,6 +4,7 @@ import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import static org.hamcrest.CoreMatchers.is;
 
 import com.hoanghaidang.social_network.dto.response.LikePostResponse;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.service.impl.LikePostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ public class LikePostControllerTest {
     void testLikePost_Success() throws Exception {
         ApiResponse<LikePostResponse> apiResponse = ApiResponse.<LikePostResponse>builder()
                 .message("Like post is completed")
-                .data(new LikePostResponse(1))
+                .data(new LikePostResponse(new PostResponse()))
                 .build();
 
         when(likePostService.likePost(any(),anyLong())).thenReturn(ResponseEntity.ok(apiResponse));

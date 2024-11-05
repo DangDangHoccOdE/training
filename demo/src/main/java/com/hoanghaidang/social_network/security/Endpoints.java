@@ -20,7 +20,6 @@ public class Endpoints {
             "/api/download",
             "/uploads/**",
             "/users/search/existsByEmail/**",
-            "/user/profile/*",
     };
 
     public static final String[] PUBLIC_PUT_ENDPOINTS={
@@ -53,6 +52,9 @@ public class Endpoints {
             "/api/friend_ship/friend_list",
             "/api/friend_ship/friend_request_list",
             "/api/friend_ship/friend_request_sent_list",
+            "/api/like/like_post_list",
+            "/api/like/like_comment_list",
+            "/api/user/profile/*",
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={

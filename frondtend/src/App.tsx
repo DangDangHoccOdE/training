@@ -7,7 +7,6 @@ import { ToastContainer } from 'react-toastify';
 import * as React from "react";
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-import ValidOtp from './pages/ValidOtp';
 import ActivatedAccount from './pages/ActivatedAccount';
 import SendActiveAccount from './pages/SendActiveAccount';
 
@@ -20,7 +19,6 @@ const MyRoutes = () => {
               <Route path="/signup" element={<SignUpPage/>} />
               <Route path="/login" element={<LoginPage/>} />
               <Route path="/" element={<HomePage/>} />
-              <Route path="/user/validate_otp" element={<ValidOtp/>}/>
               <Route path="/send_active_account" element={<SendActiveAccount/>}/>
               <Route path="/user/active_account" element={<ActivatedAccount/>}/>
             </Routes>

@@ -49,17 +49,16 @@ const LoginPage=()=>{
                 })
     
                 if(response.status === 200){
-                    setNotice("Đăng nhập thành công!");
-                    setNotice("Vui lòng vào gmail để xác nhận tài khoản!");
+                    localStorage.setItem("email",formData.email);
+                    setNotice("Vui lòng vào email để nhận mã OTP")
+                    setShowModal(true);
                 }
             }catch(error){
                 console.log("Đăng nhập không thành công",error);
                 const errorDetail = error?.response?.data?.status;
                 if(errorDetail === 403){
-                    // localStorage.setItem("email",formData.email);
-                    // navigate("/send_active_account");
-
-                    setShowModal(true);
+                    localStorage.setItem("email",formData.email);
+                    navigate("/send_active_account");
                 }else{
                     setNotice("Tài khoản hoặc mật khẩu không chính xác!");
                 }
@@ -103,6 +102,7 @@ const LoginPage=()=>{
 
     const handleChange = (event)=>{
         const {name,value} = event.target;
+        setNotice("");
         if(name ==="email"){
             setNoticeEmail("");
         }else{
@@ -119,27 +119,9 @@ const LoginPage=()=>{
         return;
     }
 
-    const handleClose=()=>{
+    const handleCloseModal = () => {
         setShowModal(false);
-    }
-
-    const handleOtpSubmit = async (otp: string) => {
-        try {
-            const email = localStorage.getItem("email");
-            const response = await axios.post("http://localhost:8080/api/user/verify-otp", {
-                email,
-                otp,
-            });
-            if (response.status === 200) {
-                setNotice("Xác nhận OTP thành công!");
-                setShowModal(false);
-                navigate("/"); // Điều hướng đến trang sau khi xác thực OTP thành công
-            }
-        } catch (error) {
-            setNotice("OTP không chính xác. Vui lòng thử lại.");
-        }
     };
-
 
     return(
         <Container maxWidth="sm">
@@ -240,8 +222,7 @@ const LoginPage=()=>{
             </Typography>
             <OtpModal
                 open={showModal}
-                onClose={() => setShowModal(false)}
-                onSubmitOtp={handleOtpSubmit}
+                onClose={handleCloseModal}
             />
         </Container>
     )

@@ -18,6 +18,12 @@ public interface FriendShipRepository extends JpaRepository<FriendShip,Long> {
     @Query("SELECT F FROM FriendShip F WHERE (F.user1 = :user or F.user2 = :user) AND F.status = :status")
     Page<FriendShip> findAllByUserAndStatus(@Param("user") User user, @Param("status") FriendStatus status,Pageable pageable);
 
+    @Query("SELECT F FROM FriendShip F WHERE F.user2 = :user AND F.status = :status")
+    Page<FriendShip> findAllRequestByUserAndStatus(@Param("user") User user, @Param("status") FriendStatus status,Pageable pageable);
+
+    @Query("SELECT F FROM FriendShip F WHERE F.user1 = :user AND F.status = :status")
+    Page<FriendShip> findAllSenRequestByUserAndStatus(@Param("user") User user, @Param("status") FriendStatus status,Pageable pageable);
+
     // Find the friendship relationship between two users
     Optional<FriendShip> findByUser1AndUser2(User user1, User user2);
 

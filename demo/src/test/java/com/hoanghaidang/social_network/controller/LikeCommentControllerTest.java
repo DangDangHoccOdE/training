@@ -1,6 +1,7 @@
 package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.dto.response.LikeCommentResponse;
 import com.hoanghaidang.social_network.service.impl.LikeCommentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +46,7 @@ public class LikeCommentControllerTest {
     void testLikeComment_Success() throws Exception {
         ApiResponse<LikeCommentResponse> apiResponse = ApiResponse.<LikeCommentResponse>builder()
                 .message("Like comment is completed")
-                .data(new LikeCommentResponse(1))
+                .data(new LikeCommentResponse(new CommentResponse()))
                 .build();
 
         when(likeCommentService.likeComment(any(),anyLong())).thenReturn(ResponseEntity.ok(apiResponse));

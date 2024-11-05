@@ -176,14 +176,15 @@ public class UserService implements IUserService {
         return ResponseEntity.ok(apiResponse);
     }
 
-    private void sendEmailActive(String email){
+    private void sendEmailActive(String email,long time){
         String token = UUID.randomUUID().toString();
         String subject = "Kích hoạt tài khoản của bạn";
         String text = "Vui lòng click vào đường dẫn sau để kích hoạt tài khoản: "+email;
         String url = "http://localhost:3000/user/active_account?email="+email+"&token="+token;
         text+= "<br/> <a href="+url+">"+url+"</a>";
+        text+="<br/> Lưu ý: Mã này có hiệu lực trong thời gian giới hạn "+time+" phút;";
 
-        stringRedisTemplate.opsForValue().set(email,token,10, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(email,token,time, TimeUnit.MINUTES);
         iEmailService.sendMessage("danghoangtest1@gmail.com",email,subject,text);
     }
 
@@ -195,7 +196,7 @@ public class UserService implements IUserService {
         if(user.isActive()){
             throw new CustomException("Account has been activated", HttpStatus.CONFLICT);
         }
-        sendEmailActive(user.getEmail()); // send email active user
+        sendEmailActive(user.getEmail(),10); // send email active user
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Send email successfully")
@@ -232,11 +233,13 @@ public class UserService implements IUserService {
         return ResponseEntity.ok().body(apiResponse);
     }
 
-    private void sendEmailLoginOtp(String email,String otp){
+    private void sendEmailLoginOtp(String email,String otp,long time){
         String subject = "Xác thực tài khoản";
-        String text = "Vui lòng click vào đường dẫn sau để xác thực tài khoản: "+email;
-        String url = "http://localhost:3000/user/validate_otp?email="+email+"&otp="+otp;
-        text+= "<br/> <a href="+url+">"+url+"</a>";
+        String text = "Chào bạn,<br/><br/>" +
+                "Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản của bạn. " +
+                "Để hoàn tất quá trình xác thực, vui lòng sử dụng mã OTP dưới đây:<br/><br/>" +
+                "<strong>" + otp + "</strong><br/><br/>" +
+                "Lưu ý: Mã này có hiệu lực trong thời gian giới hạn "+time+ " phút.";
 
         iEmailService.sendMessage("danghoangtest1@gmail.com",email,subject,text);
     }
@@ -253,14 +256,15 @@ public class UserService implements IUserService {
 
             String otp = GetOtp.generateOtp(6); // 6 char
 
+            long time = 5;
             // Save otp in redis with TTL 5min
-            stringRedisTemplate.opsForValue().set(loginDto.getEmail().toLowerCase(),otp,5,TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(loginDto.getEmail().toLowerCase(),otp,time,TimeUnit.MINUTES);
 
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setOtp(otp);
             loginResponse.setEmail(loginDto.getEmail().toLowerCase());
 
-            sendEmailLoginOtp(loginDto.getEmail(),otp);
+            sendEmailLoginOtp(loginDto.getEmail(),otp,time);
 
             ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
                     .data(loginResponse)

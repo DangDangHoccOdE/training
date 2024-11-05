@@ -67,13 +67,15 @@ public class PostService implements IPostService {
         User user = getAuthenticatedUser(authentication);
 
         Post post = getPost(postId);
-        User ownerPost =  post.getUser();
+        if(post.getUser().getId()!=user.getId() && !post.getPostStatus().equals(PostStatus.PUBLIC)){
+            User ownerPost =  post.getUser();
 
-        FriendShip friendShip = findFriendship(user, ownerPost);
+            FriendShip friendShip = findFriendship(user, ownerPost);
 
-        if((!post.getPostStatus().equals(PostStatus.FRIENDS_ONLY) && !friendShip.getStatus().equals(FriendStatus.ACCEPTED))
-        || post.getPostStatus().equals(PostStatus.PRIVATE) && post.getUser().getId()!=user.getId()){
-            throw new AccessDeniedException("You do not have access");
+            if((post.getPostStatus().equals(PostStatus.FRIENDS_ONLY) && !friendShip.getStatus().equals(FriendStatus.ACCEPTED))
+                    || post.getPostStatus().equals(PostStatus.PRIVATE) ){
+                throw new AccessDeniedException("You do not have access");
+            }
         }
 
         ApiResponse<PostResponse> response = ApiResponse.<PostResponse>builder()

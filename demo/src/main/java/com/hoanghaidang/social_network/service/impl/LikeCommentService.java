@@ -47,7 +47,7 @@ public class LikeCommentService implements ILikeCommentService {
     public ResponseEntity<ApiResponse<Map<String,Object>>> getLikeCommentList(Authentication authentication, int page, int size) {
         User user = getAuthenticatedUser(authentication);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
 
         Page<LikeComment> likeComments = likeCommentRepository.findLikeCommentByUser(user, pageable);
 

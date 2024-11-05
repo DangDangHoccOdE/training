@@ -188,7 +188,8 @@ const SignUpPage=()=>{
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-    
+
+        setNotice("");
         if(name === "firstName" || name==="lastName"){
             setNoticeName("");
         }else if(name === "gender"){
@@ -231,6 +232,7 @@ const SignUpPage=()=>{
                     <Box sx={{mb:2,mt:1}}>
                         <Box sx={{display:'flex',gap:2}}>
                             <TextField
+                            error={!!noticeName}
                             size="small"
                             fullWidth
                             name="lastName"
@@ -240,6 +242,7 @@ const SignUpPage=()=>{
                             onChange={handleChange}
                             />
                             <TextField
+                            error={!!noticeName}
                             size="small"
                             fullWidth
                             name="firstName"
@@ -269,9 +272,10 @@ const SignUpPage=()=>{
                             <FormControl fullWidth size="small">
                                 <Select name="day"
                                 value={formData.day}
+                                error={!!noticeDateOfBirth}
                                 onChange={handleChange}
                                 displayEmpty>
-                                    <MenuItem disabled value="">
+                                    <MenuItem value="">
                                     Ngày
                                     </MenuItem>
                                 {days.map(day=>(
@@ -283,6 +287,7 @@ const SignUpPage=()=>{
                             <FormControl fullWidth size="small">
                                 <Select name="month"
                                 value={formData.month}
+                                error={!!noticeDateOfBirth}
                                 onChange={handleChange}
                                 displayEmpty>
                                     <MenuItem value="">
@@ -297,6 +302,7 @@ const SignUpPage=()=>{
                             <FormControl fullWidth size="small">
                                     <Select name="year"
                                     value={formData.year}
+                                    error={!!noticeDateOfBirth}
                                     onChange={handleChange}
                                     displayEmpty>
                                         <MenuItem value="">
@@ -322,36 +328,37 @@ const SignUpPage=()=>{
                                 <Info size={16}/>
                             </IconButton>
                         </Typography>
-                                    
-                        <RadioGroup
-                            row
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleChange}>
-                                <FormControlLabel
-                                value="FEMALE"
-                                label="Nữ"
-                                control={<Radio size="small"/>}
-                                sx={{
-                                    flex:1,
+                        {/* <FormControl error={!!noticeGender} variant="standard"> */}
+                            <RadioGroup
+                                row
+                                name="gender"
+                                value={formData.gender}
+                                onChange={handleChange}>
+                                    <FormControlLabel
+                                    value="FEMALE"
+                                    label="Nữ"
+                                    control={<Radio size="small"/>}
+                                    sx={{
+                                        flex:1,
+                                        border:'1px solid #ccc',
+                                        borderRadius:1,
+                                        m:0,
+                                        mr:2
+                                    }}/>
+                                    <FormControlLabel
+                                    value="MALE"
+                                    control={<Radio size="small"/>}
+                                    label="Nam"
+                                    sx={{
+                                        flex:1,
                                     border:'1px solid #ccc',
-                                    borderRadius:1,
-                                    m:0,
-                                    mr:2
-                                }}/>
-                                <FormControlLabel
-                                value="MALE"
-                                control={<Radio size="small"/>}
-                                label="Nam"
-                                sx={{
-                                    flex:1,
-                                   border:'1px solid #ccc',
-                                    borderRadius:1,
-                                    m:0,
-                                    mr:0
-                                }}
-                                />
-                        </RadioGroup>
+                                        borderRadius:1,
+                                        m:0,
+                                        mr:0
+                                    }}
+                                    />
+                            </RadioGroup>
+                        {/* </FormControl> */}
                         {noticeGender && 
                             <Typography color="error" sx={{mt:1,fontSize:'0.875rem'}}>
                                 {noticeGender}
@@ -364,6 +371,7 @@ const SignUpPage=()=>{
                         label='Nhập email'
                         name='email'
                         variant="outlined"
+                        error={!!noticeEmail}
                         value={formData.email}
                         onChange={handleChange}
                         size="small"
@@ -377,6 +385,7 @@ const SignUpPage=()=>{
                     <TextField fullWidth type="password"
                         label='Mật khẩu mới'
                         name='password'
+                        error={!!noticePassword}
                         variant="outlined"
                         value={formData.password}
                         onChange={handleChange} sx={{mt:2}}

@@ -90,7 +90,7 @@ public class FriendShipService implements IFriendShipService {
         // Cùng 1 câu query nhưng có thể tùy chọn sort
         Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
 
-        Page<FriendShip> friendShips = friendShipRepository.findAllByUserAndStatus(user,FriendStatus.PENDING, pageable);
+        Page<FriendShip> friendShips = friendShipRepository.findAllRequestByUserAndStatus(user,FriendStatus.PENDING, pageable);
         Page<FriendshipResponse> friendshipResponses = friendShips.map(
                 friendShip -> friendshipMapper.toFriendship(friendShip,user)
         );
@@ -114,9 +114,9 @@ public class FriendShipService implements IFriendShipService {
         // Cùng 1 câu query nhưng có thể tùy chọn sort
         Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
 
-        Page<FriendShip> friendShips = friendShipRepository.findAllByUserAndStatus(user,FriendStatus.PENDING, pageable);
+        Page<FriendShip> friendShips = friendShipRepository.findAllSenRequestByUserAndStatus(user,FriendStatus.PENDING, pageable);
         Page<FriendshipResponse> friendshipResponses = friendShips.map(
-                friendShip -> friendshipMapper.getFriendshipSent(friendShip,user)
+                friendShip -> friendshipMapper.toFriendship(friendShip,user)
         );
 
         Map<String, Object> response = new HashMap<>();
