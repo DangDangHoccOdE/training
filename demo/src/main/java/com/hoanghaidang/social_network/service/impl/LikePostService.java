@@ -5,15 +5,23 @@ import com.hoanghaidang.social_network.dao.LikePostRepository;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
+import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 import com.hoanghaidang.social_network.dto.response.LikePostResponse;
+import com.hoanghaidang.social_network.dto.response.PostResponse;
 import com.hoanghaidang.social_network.entity.*;
+import com.hoanghaidang.social_network.enums.FriendStatus;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.mapper.LikeMapper;
+import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.inter.ILikeCommentService;
 import com.hoanghaidang.social_network.service.inter.ILikePostService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,6 +29,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -30,6 +40,7 @@ public class LikePostService implements ILikePostService {
     PostRepository postRepository;
     UserRepository userRepository;
     LikeMapper likeMapper;
+    PostMapper postMapper;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -38,6 +49,30 @@ public class LikePostService implements ILikePostService {
 
     private LikePost checkDuplicateLike(long userId, Long postId) {
             return likePostRepository.findByUserIdAndPostId(userId, postId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getLikePostList(Authentication authentication, int page, int size) {
+        User user = getAuthenticatedUser(authentication);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<LikePost> likePosts = likePostRepository.findLikePostByUser(user, pageable);
+
+        Page<LikePostResponse> likePostResponses = likePosts.map(
+                likeMapper::toPostResponse
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("likePosts", likePostResponses.getContent());
+        response.put("currentPage", likePostResponses.getNumber());
+        response.put("totalItems", likePostResponses.getTotalElements());
+        response.put("totalPages", likePostResponses.getTotalPages());
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override

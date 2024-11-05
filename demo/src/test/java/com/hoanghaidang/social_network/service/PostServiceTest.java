@@ -15,16 +15,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,6 +41,10 @@ public class PostServiceTest {
     private UserRepository userRepository;
     @Mock
     private PostMapper postMapper;
+    @Mock
+    private Pageable pageable;
+    @Mock
+    private Page<Post> posts;
 
     private User user;
     private PostDto postDto;
@@ -49,10 +55,35 @@ public class PostServiceTest {
         user = User.builder().id(1L).email("a@gmail.com").build();
         postDto = PostDto.builder().content("a").build();
         post = Post.builder().id(1L).user(user).build();
+
+        Post post2 = Post.builder()
+                .user(user)
+                .content("abcs")
+                .build();
+        List<Post> postList = new ArrayList<>();
+        postList.add(post2);
+        posts = new PageImpl<>(postList);
     }
     private void mockAuthenticationAndUser(User user){
         when(authentication.getName()).thenReturn(user.getEmail());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void testTimeline_Success(){
+        int page = 0;
+        int size = 5;
+        pageable = PageRequest.of(page, size);
+
+        mockAuthenticationAndUser(user);
+        when(postRepository.findFriendPostsByEmail(user.getEmail(),pageable)).thenReturn(posts);
+        when(postMapper.toPostResponse(any())).thenReturn(new PostResponse());
+
+        ResponseEntity<ApiResponse<Map<String,Object>>> response = postService.timeline(authentication,page,size);
+
+        assertEquals(response.getStatusCode(), HttpStatus.OK);
+        assertNotNull(response.getBody());
+
     }
 
     @Test

@@ -50,9 +50,8 @@ public class FriendshipControllerTest {
 
     @Test
     void testSendFriendRequest_Success() throws Exception {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Send add friend is completed")
-                .data(new FriendshipResponse(1, FriendStatus.PENDING))
                 .build();
 
         // Mock service để trả về ResponseEntity với thông báo thành công
@@ -71,9 +70,8 @@ public class FriendshipControllerTest {
 
     @Test
     void testAcceptFriendshipRequest_Success() throws Exception {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Add friend is completed")
-                .data(new FriendshipResponse(1, FriendStatus.ACCEPTED))
                 .build();
         // Mock service để trả về ResponseEntity với thông báo thành công
         doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).acceptFriendRequest(any(), anyLong());
@@ -90,9 +88,8 @@ public class FriendshipControllerTest {
 
     @Test
     void testDeclineFriendship_Success() throws Exception {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Friendship declined successfully")
-                .data(new FriendshipResponse(1, FriendStatus.DECLINED))
                 .build();
         doReturn(ResponseEntity.ok(apiResponse)).when(friendShipService).declineFriendShip(any(),anyLong());
 

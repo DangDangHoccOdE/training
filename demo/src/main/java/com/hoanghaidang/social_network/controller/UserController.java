@@ -25,6 +25,12 @@ public class UserController {
     IUserService iUserService;
     UserService userService;
 
+    @Operation(summary = "User Info",description = "User Info")
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable long userId){
+        return iUserService.getUserById(userId);
+    }
+
     @Operation(summary = "Refresh Token",description = "Refresh Token")
     @PostMapping("/refreshToken")
     public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,@RequestHeader String refreshToken){

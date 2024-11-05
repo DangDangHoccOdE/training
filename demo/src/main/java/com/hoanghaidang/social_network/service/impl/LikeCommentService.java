@@ -11,6 +11,10 @@ import com.hoanghaidang.social_network.service.inter.ILikeCommentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -35,6 +41,30 @@ public class LikeCommentService implements ILikeCommentService {
 
     private LikeComment checkDuplicateLike(long userId, Long commentId) {
             return likeCommentRepository.findByUserIdAndCommentId(userId, commentId);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Map<String,Object>>> getLikeCommentList(Authentication authentication, int page, int size) {
+        User user = getAuthenticatedUser(authentication);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<LikeComment> likeComments = likeCommentRepository.findLikeCommentByUser(user, pageable);
+
+        Page<LikeCommentResponse> likeCommentResponses = likeComments.map(
+                likeMapper::toCommentResponse
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("likeComments", likeCommentResponses.getContent());
+        response.put("currentPage", likeCommentResponses.getNumber());
+        response.put("totalItems", likeCommentResponses.getTotalElements());
+        response.put("totalPages", likeCommentResponses.getTotalPages());
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Override

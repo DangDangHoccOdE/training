@@ -24,4 +24,5 @@ public class PostResponse {
     private LocalDateTime createdAt;
     private PostStatus postStatus;
     private List<String> images;
+    private List<CommentResponse> commentResponses ;
 }

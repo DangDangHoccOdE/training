@@ -14,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/post")
 @Tag(name = "Post Management", description = "APIs for managing post")
@@ -21,6 +23,21 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 public class PostController {
     private IPostService iPostService;
+
+    @Operation(summary = "Post Detail", description = "Post Detail")
+    @GetMapping("/post_detail/{postId}")
+    public ResponseEntity<ApiResponse<PostResponse>> getPostById(Authentication authentication,@PathVariable long postId) {
+        return iPostService.getPostById(authentication,postId);
+    }
+
+    @Operation(summary = "Time line", description = "Time line")
+    @GetMapping("/timeline")
+    public ResponseEntity<ApiResponse<Map<String,Object>>> timeline(Authentication authentication,
+                                                                    @RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "5") int size
+    ) {
+        return iPostService.timeline(authentication, page,size);
+    }
 
     @Operation(summary = "Create Post", description = "Create Post")
     @PostMapping("/create_post")

@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/like")
 @AllArgsConstructor
@@ -25,6 +27,23 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     ILikeCommentService iLikeCommentService;
     ILikePostService iLikePostService;
+
+    @Operation(summary = "Like post list", description = "Like post list")
+    @GetMapping("/like_post_list")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getLikePostList(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size){
+        return iLikePostService.getLikePostList(authentication,page,size);
+    }
+    @Operation(summary = "Like comment list", description = "Like comment list")
+    @GetMapping("/like_comment_list")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getLikeCommentList(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size){
+        return iLikeCommentService.getLikeCommentList(authentication,page,size);
+    }
 
     @Operation(summary = "Like post", description = "Like post")
     @PostMapping("/like_post")

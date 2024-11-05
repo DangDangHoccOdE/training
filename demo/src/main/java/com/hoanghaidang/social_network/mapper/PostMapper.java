@@ -1,13 +1,22 @@
 package com.hoanghaidang.social_network.mapper;
 
+import com.hoanghaidang.social_network.dto.response.CommentResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
+import com.hoanghaidang.social_network.entity.Comment;
 import com.hoanghaidang.social_network.entity.Post;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class PostMapper {
+    @Autowired
+    private CommentMapper commentMapper;
+
     public PostResponse toPostResponse(Post post) {
         PostResponse.PostResponseBuilder builder = PostResponse.builder();
 
@@ -27,12 +36,17 @@ public class PostMapper {
                     .imageCount(0);
         }
 
+        List<CommentResponse> commentResponseList = post.getComments().stream()
+                .map(commentMapper::commentResponse)
+                .collect(Collectors.toList());
+
         builder.commentCount(post.getCommentCount())
                 .createdAt(post.getCreateAt())
                 .likeCount(post.getLikeCount())
                 .postStatus(post.getPostStatus())
                 .userId(post.getUser().getId())
-                .id(post.getId());
+                .id(post.getId())
+                .commentResponses(commentResponseList);
 
         return builder.build();
     }

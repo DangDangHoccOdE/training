@@ -10,5 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class LikePostResponse {
-    private long postId;
+//    private long postId;
+
+    private PostResponse postResponse;
 }

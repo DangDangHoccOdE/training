@@ -13,6 +13,10 @@ import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,6 +24,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -54,7 +60,80 @@ public class FriendShipService implements IFriendShipService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<FriendshipResponse>> sendFriendRequest(Authentication authentication, Long receiverId) {
+    public ResponseEntity<ApiResponse<Map<String,Object>>> friendListByUser(Authentication authentication,int page,int size) {
+        User user = getAuthenticatedUser(authentication);
+
+        // Cùng 1 câu query nhưng có thể tùy chọn sort
+        Pageable pageable = PageRequest.of(page, size, Sort.by("updateAt").descending());
+
+        Page<FriendShip> friendShips = friendShipRepository.findAllByUserAndStatus(user,FriendStatus.ACCEPTED, pageable);
+        Page<FriendshipResponse> friendshipResponses = friendShips.map(
+                friendShip -> friendshipMapper.toFriendship(friendShip,user)
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("friends", friendshipResponses.getContent());
+        response.put("currentPage", friendshipResponses.getNumber());
+        response.put("totalItems", friendshipResponses.getTotalElements());
+        response.put("totalPages", friendshipResponses.getTotalPages());
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Map<String,Object>>> friendRequestListByUser(Authentication authentication,int page,int size) {
+        User user = getAuthenticatedUser(authentication);
+
+        // Cùng 1 câu query nhưng có thể tùy chọn sort
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
+
+        Page<FriendShip> friendShips = friendShipRepository.findAllByUserAndStatus(user,FriendStatus.PENDING, pageable);
+        Page<FriendshipResponse> friendshipResponses = friendShips.map(
+                friendShip -> friendshipMapper.toFriendship(friendShip,user)
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("friends", friendshipResponses.getContent());
+        response.put("currentPage", friendshipResponses.getNumber());
+        response.put("totalItems", friendshipResponses.getTotalElements());
+        response.put("totalPages", friendshipResponses.getTotalPages());
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Map<String,Object>>> friendRequestSentListByUser(Authentication authentication,int page,int size) {
+        User user = getAuthenticatedUser(authentication);
+
+        // Cùng 1 câu query nhưng có thể tùy chọn sort
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
+
+        Page<FriendShip> friendShips = friendShipRepository.findAllByUserAndStatus(user,FriendStatus.PENDING, pageable);
+        Page<FriendshipResponse> friendshipResponses = friendShips.map(
+                friendShip -> friendshipMapper.getFriendshipSent(friendShip,user)
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("friends", friendshipResponses.getContent());
+        response.put("currentPage", friendshipResponses.getNumber());
+        response.put("totalItems", friendshipResponses.getTotalElements());
+        response.put("totalPages", friendshipResponses.getTotalPages());
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> sendFriendRequest(Authentication authentication, Long receiverId) {
         User sender = getAuthenticatedUser(authentication);
         User receiver = userRepository.findUserById(receiverId)
                 .orElseThrow(() -> new CustomException("User is not found", HttpStatus.NOT_FOUND));
@@ -82,16 +161,14 @@ public class FriendShipService implements IFriendShipService {
         friendship.setStatus(FriendStatus.PENDING);
         friendShipRepository.save(friendship);
 
-        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendship);
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Send add friend is completed")
-                .data(friendshipResponse)
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<ApiResponse<FriendshipResponse>> acceptFriendRequest(Authentication authentication, Long receiverId) {
+    public ResponseEntity<ApiResponse<Void>> acceptFriendRequest(Authentication authentication, Long receiverId) {
         User receiver = userRepository.findUserById(receiverId)
                 .orElseThrow(() -> new CustomException("User receiver is not found", HttpStatus.NOT_FOUND));
         User auth = getAuthenticatedUser(authentication);
@@ -104,16 +181,14 @@ public class FriendShipService implements IFriendShipService {
         friendShip.setStatus(FriendStatus.ACCEPTED);
         friendShipRepository.save(friendShip);
 
-        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendShip);
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Add friend is completed")
-                .data(friendshipResponse)
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
     @Override
-    public ResponseEntity<ApiResponse<FriendshipResponse>> declineFriendShip(Authentication authentication, Long receiverId) {
+    public ResponseEntity<ApiResponse<Void>> declineFriendShip(Authentication authentication, Long receiverId) {
         User receiver = userRepository.findUserById(receiverId)
                 .orElseThrow(() -> new CustomException("User receiver is not found", HttpStatus.NOT_FOUND));
         User auth = getAuthenticatedUser(authentication);
@@ -126,10 +201,8 @@ public class FriendShipService implements IFriendShipService {
         friendShip.setStatus(FriendStatus.DECLINED);
         friendShipRepository.save(friendShip);
 
-        FriendshipResponse friendshipResponse = friendshipMapper.toFriendship(friendShip);
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Friendship declined successfully")
-                .data(friendshipResponse)
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

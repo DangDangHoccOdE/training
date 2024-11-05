@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class FriendshipResponse {
-    private long id;
-
-    private FriendStatus status;
+    private long userId;
+    private String fullName;
+    private String avatar;
 }

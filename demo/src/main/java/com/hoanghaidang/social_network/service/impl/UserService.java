@@ -57,6 +57,17 @@ public class UserService implements IUserService {
     private final LikeCommentRepository likeCommentRepository;
 
     @Override
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(Long userId) {
+        User user = userRepository.findUserById(userId)
+                .orElseThrow(()-> new CustomException("User is not found", HttpStatus.NOT_FOUND));
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .data(userMapper.toUserResponse(user))
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,String refreshToken) {
         User auth =  userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new CustomException("User is not found",HttpStatus.NOT_FOUND));

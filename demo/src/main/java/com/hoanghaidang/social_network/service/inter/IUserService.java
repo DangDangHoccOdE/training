@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import java.io.IOException;
 
 public interface IUserService {
+    ResponseEntity<ApiResponse<UserResponse>> getUserById(Long userId);
     ResponseEntity<ApiResponse<Void>> sendEmailActive(UserRequestDto userRequestDto);
     ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,String refreshToken);
     ResponseEntity<ApiResponse<Void>> registerUser(RegistrationDto registrationDto) throws Exception;

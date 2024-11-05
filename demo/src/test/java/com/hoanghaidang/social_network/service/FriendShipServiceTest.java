@@ -52,9 +52,8 @@ public class FriendShipServiceTest {
 
     @Test
     void sendFriendRequest_Success() {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Send add friend is completed")
-                .data(friendshipMapper.toFriendship(friendShip))
                 .build();
         mockAuthenticationAndUser(sender);
 
@@ -62,7 +61,7 @@ public class FriendShipServiceTest {
         when(friendShipRepository.findByUser1AndUser2(sender, receiver)).thenReturn(Optional.empty());
         when(friendShipRepository.findByUser1AndUser2(receiver, sender)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponse<FriendshipResponse>> response = friendShipService.sendFriendRequest(authentication, receiver.getId());
+        ResponseEntity<ApiResponse<Void>> response = friendShipService.sendFriendRequest(authentication, receiver.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
@@ -108,16 +107,15 @@ public class FriendShipServiceTest {
     void testSendFriendship_UpdateStatusFriendship() {
         friendShip.setStatus(FriendStatus.DECLINED);
 
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Send add friend is completed")
-                .data(friendshipMapper.toFriendship(friendShip))
                 .build();
 
         mockAuthenticationAndUser(sender);
 
         when(userRepository.findUserById(receiver.getId())).thenReturn(Optional.of(receiver));
 
-        ResponseEntity<ApiResponse<FriendshipResponse>> response = friendShipService.sendFriendRequest(authentication, receiver.getId());
+        ResponseEntity<ApiResponse<Void>> response = friendShipService.sendFriendRequest(authentication, receiver.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
@@ -152,9 +150,8 @@ public class FriendShipServiceTest {
 
     @Test
     void testAcceptFriendRequest_Success() {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Add friend is completed")
-                .data(friendshipMapper.toFriendship(friendShip))
                 .build();
 
         friendShip.setStatus(FriendStatus.PENDING);
@@ -163,7 +160,7 @@ public class FriendShipServiceTest {
         when(friendShipRepository.findByUser1AndUser2(any(), any())).thenReturn(Optional.of(friendShip));
         when(friendShipRepository.findByUser1AndUser2(any(), any())).thenReturn(Optional.of(friendShip));
 
-        ResponseEntity<ApiResponse<FriendshipResponse>> response = friendShipService.acceptFriendRequest(authentication, friendShip.getId());
+        ResponseEntity<ApiResponse<Void>> response = friendShipService.acceptFriendRequest(authentication, friendShip.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(FriendStatus.ACCEPTED, friendShip.getStatus());
@@ -173,9 +170,8 @@ public class FriendShipServiceTest {
 
     @Test
     void testDeclineFriendship_Success() {
-        ApiResponse<FriendshipResponse> apiResponse = ApiResponse.<FriendshipResponse>builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Friendship declined successfully")
-                .data(friendshipMapper.toFriendship(friendShip))
                 .build();
         friendShip.setStatus(FriendStatus.PENDING);
         mockAuthenticationAndUser(receiver);
@@ -184,7 +180,7 @@ public class FriendShipServiceTest {
         when(friendShipRepository.findByUser1AndUser2(any(), any())).thenReturn(Optional.of(friendShip));
         when(friendShipRepository.findByUser1AndUser2(any(), any())).thenReturn(Optional.of(friendShip));
 
-        ResponseEntity<ApiResponse<FriendshipResponse>> response = friendShipService.declineFriendShip(authentication, friendShip.getId());
+        ResponseEntity<ApiResponse<Void>> response = friendShipService.declineFriendShip(authentication, friendShip.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(FriendStatus.DECLINED, friendShip.getStatus());
