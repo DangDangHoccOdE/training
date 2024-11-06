@@ -47,13 +47,3 @@ export const useAuth=():AuthContextType=>{
     }
     return context;
 }
-
-// export const ProtectedRoute = ({children}: {children:React.ReactElement})=>{
-//     const location = useLocation();
-//     const {isLoggedIn} = useAuth();
-//     if(!isLoggedIn){
-//         localStorage.setItem("redirectPath",location.pathname);
-//         return <Navigate to={"/login"} replace/>
-//     }
-//     return children;
-// }

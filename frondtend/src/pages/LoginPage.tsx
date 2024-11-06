@@ -135,6 +135,7 @@ const LoginPage=()=>{
                 <form onSubmit={handleSubmit}>
                     <TextField size="small"
                     fullWidth
+                    error={!!noticeEmail}
                     name="email"
                     label="email"
                     variant="outlined"
@@ -153,6 +154,7 @@ const LoginPage=()=>{
 
                     <TextField size="small"
                     fullWidth
+                    error={!!noticePassword}
                     type="password"
                     name="password"
                     label="password"
