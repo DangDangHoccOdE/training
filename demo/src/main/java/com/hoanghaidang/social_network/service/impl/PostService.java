@@ -59,7 +59,7 @@ public class PostService implements IPostService {
     private FriendShip findFriendship(User user1, User user2) {
         return friendShipRepository.findByUser1AndUser2(user1, user2)
                 .or(() -> friendShipRepository.findByUser1AndUser2(user2, user1))
-                .orElseThrow(() -> new AccessDeniedException("you do not have access!"));
+                .orElseThrow(() -> new AccessDeniedException("You do not have access!"));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class PostService implements IPostService {
 
             if((post.getPostStatus().equals(PostStatus.FRIENDS_ONLY) && !friendShip.getStatus().equals(FriendStatus.ACCEPTED))
                     || post.getPostStatus().equals(PostStatus.PRIVATE) ){
-                throw new AccessDeniedException("You do not have access");
+                throw new AccessDeniedException("You do not have access!");
             }
         }
 

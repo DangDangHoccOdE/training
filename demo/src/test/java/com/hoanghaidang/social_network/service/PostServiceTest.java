@@ -1,12 +1,15 @@
 package com.hoanghaidang.social_network.service;
 
+import com.hoanghaidang.social_network.dao.FriendShipRepository;
 import com.hoanghaidang.social_network.dao.PostRepository;
 import com.hoanghaidang.social_network.dao.UserRepository;
 import com.hoanghaidang.social_network.dto.request.PostDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.PostResponse;
+import com.hoanghaidang.social_network.entity.FriendShip;
 import com.hoanghaidang.social_network.entity.Post;
 import com.hoanghaidang.social_network.entity.User;
+import com.hoanghaidang.social_network.enums.PostStatus;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.mapper.PostMapper;
 import com.hoanghaidang.social_network.service.impl.PostService;
@@ -19,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -45,6 +49,8 @@ public class PostServiceTest {
     private Pageable pageable;
     @Mock
     private Page<Post> posts;
+    @Mock
+    private FriendShipRepository friendShipRepository;
 
     private User user;
     private PostDto postDto;
@@ -67,6 +73,83 @@ public class PostServiceTest {
     private void mockAuthenticationAndUser(User user){
         when(authentication.getName()).thenReturn(user.getEmail());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void testGetPostById_PublicPost_Success() {
+        mockAuthenticationAndUser(user);
+        post.setPostStatus(PostStatus.PUBLIC);
+
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        PostResponse postResponse =postMapper.toPostResponse(post);
+        when(postMapper.toPostResponse(any())).thenReturn(postResponse);
+
+        ResponseEntity<ApiResponse<PostResponse>> response = postService.getPostById(authentication, post.getId());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void testGetPostById_FriendsOnly_Post_AccessGranted() {
+        mockAuthenticationAndUser(user);
+
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        // Mock friendship
+        when(friendShipRepository.findByUser1AndUser2(any(), any())).thenReturn(Optional.of(new FriendShip()));
+
+        // Mock the postMapper to return a PostResponse
+        PostResponse postResponse = postMapper.toPostResponse(post);
+        when(postMapper.toPostResponse(post)).thenReturn(postResponse);
+
+        // Call the service method
+        ResponseEntity<ApiResponse<PostResponse>> response = postService.getPostById(authentication, post.getId());
+
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void testGetPostById_FriendsOnly_Post_AccessDenied() {
+        post.setPostStatus(PostStatus.FRIENDS_ONLY);
+        post.setUser(User.builder().id(2L).build());
+
+        mockAuthenticationAndUser(user);
+
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        when(friendShipRepository.findByUser1AndUser2(any(),any())).thenThrow(new AccessDeniedException("You do not have access!"));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,()->postService.getPostById(authentication,post.getId()));
+
+        assertEquals("You do not have access!",exception.getMessage());
+    }
+
+    @Test
+    void testGetPostById_PrivatePost_AccessDenied() {
+        post.setPostStatus(PostStatus.PRIVATE);
+        post.setUser(User.builder().id(2L).build());
+        mockAuthenticationAndUser(user);
+
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,()->postService.getPostById(authentication,post.getId()));
+
+        assertEquals("You do not have access!",exception.getMessage());
+    }
+
+    @Test
+    void testGetPostById_PostNotFound() {
+        mockAuthenticationAndUser(user);
+        when(postRepository.findById(any())).thenThrow(new CustomException("Post could not be found", HttpStatus.NOT_FOUND));
+
+        CustomException exception = assertThrows(CustomException.class,()->postService.getPostById(authentication,post.getId()));
+
+        assertEquals("Post could not be found", exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND,exception.getStatus());
     }
 
     @Test

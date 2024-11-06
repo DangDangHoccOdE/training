@@ -108,6 +108,28 @@ public class UserServiceTest {
     }
 
     @Test
+    void testGetUserById_Success() {
+        when(userRepository.findUserById(user.getId())).thenReturn(Optional.of(user));
+
+        UserResponse userResponse = userMapper.toUserResponse(user);
+
+        ResponseEntity<ApiResponse<UserResponse>> response = userService.getUserById(user.getId());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(userResponse, Objects.requireNonNull(response.getBody()).getData());
+    }
+
+    @Test
+    void testGetUserById_FailUserNotFound() {
+        when(userRepository.findUserById(user.getId())).thenThrow( new CustomException("User is not found", HttpStatus.NOT_FOUND));
+
+        CustomException exception = assertThrows(CustomException.class, () -> userService.getUserById(user.getId()));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        assertEquals("User is not found", Objects.requireNonNull(exception.getMessage()));
+    }
+
+    @Test
     void testRefreshToken_Success() {
         String refreshToken = "Refresh-Token mock";
         String email = user.getEmail();

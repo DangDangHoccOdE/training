@@ -9,6 +9,7 @@ public class UserMapper {
 
     public UserResponse toUserResponse(User user) {
         UserResponse.UserResponseBuilder responseBuilder = UserResponse.builder()
+                .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .gender(user.getGender())

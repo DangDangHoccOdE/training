@@ -8,6 +8,8 @@ import com.hoanghaidang.social_network.entity.*;
 import com.hoanghaidang.social_network.exception.CustomException;
 import com.hoanghaidang.social_network.mapper.LikeMapper;
 import com.hoanghaidang.social_network.service.inter.ILikeCommentService;
+import com.hoanghaidang.social_network.service.inter.ILikePostService;
+import com.hoanghaidang.social_network.service.inter.IPostService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -33,6 +35,7 @@ public class LikeCommentService implements ILikeCommentService {
     CommentRepository commentRepository;
     UserRepository userRepository;
     LikeMapper likeMapper;
+    IPostService iPostService;
 
     private User getAuthenticatedUser(Authentication authentication) {
         return userRepository.findByEmail(authentication.getName())
@@ -71,6 +74,10 @@ public class LikeCommentService implements ILikeCommentService {
     public ResponseEntity<ApiResponse<LikeCommentResponse>> likeComment(Authentication authentication, long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException("The comment is not found", HttpStatus.NOT_FOUND));
+
+        Post post = comment.getPost(); // Lấy ra post => check xem post này ở status nào
+        // Bài post ở trạng thái private or friends_only => check xem có quyền thấy comment này k
+        iPostService.getPostById(authentication,post.getId());
 
         User user = getAuthenticatedUser(authentication);
 

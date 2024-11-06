@@ -14,13 +14,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +43,24 @@ public class LikeCommentControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(likeController).build();
     }
 
+    @Test
+    void testLikeCommentList_Success() throws Exception {
+        int page = 0;
+        int size = 5;
 
+        Map<String, Object> responseMap = new HashMap<>();
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(responseMap)
+                .build();
+
+        when(likeCommentService.getLikeCommentList(authentication, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/like/like_comment_list")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
     @Test
     void testLikeComment_Success() throws Exception {

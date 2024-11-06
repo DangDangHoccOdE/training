@@ -2,7 +2,6 @@ package com.hoanghaidang.social_network.controller;
 
 import com.hoanghaidang.social_network.dto.request.FriendshipDto;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 import com.hoanghaidang.social_network.service.inter.IFriendShipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

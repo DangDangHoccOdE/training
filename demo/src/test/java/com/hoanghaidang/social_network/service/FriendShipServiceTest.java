@@ -15,16 +15,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class FriendShipServiceTest {
@@ -49,6 +51,89 @@ public class FriendShipServiceTest {
         receiver = createUser(2L, "b@gmail.com");
         friendShip = createFriendShip(1L, sender, receiver, FriendStatus.PENDING);
     }
+
+    @Test
+    void testFriendListByUser_Success(){
+        int page = 0;
+        int size = 5;
+        Pageable pageable = PageRequest.of(page, size, Sort.by("updateAt").descending());
+
+        List<FriendShip> friendShips = List.of(friendShip);
+
+        mockAuthenticationAndUser(receiver);
+        when(friendShipRepository.findAllByUserAndStatus(receiver,FriendStatus.ACCEPTED,pageable)).thenReturn(new PageImpl<>(friendShips));
+        when(friendshipMapper.toFriendship(any(),any())).thenReturn(new FriendshipResponse());
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = friendShipService.friendListByUser(authentication, page, size);
+
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = response.getBody().getData();
+        assertNotNull(responseBody);
+
+        // Check the response data
+        List<FriendshipResponse> friends = (List<FriendshipResponse>) responseBody.get("friends");
+        assertEquals(1, friends.size());  // We expect two friends in the list
+    }
+
+    @Test
+    void testFriendRequestListByUser_Success() throws Exception {
+        int page = 0;
+        int size = 5;
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
+
+        mockAuthenticationAndUser(receiver);
+        friendShip.setStatus(FriendStatus.PENDING);
+        List<FriendShip> pendingFriendShips = List.of(friendShip);
+
+        Page<FriendShip> friendShipPage = new PageImpl<>(pendingFriendShips, pageable, pendingFriendShips.size());
+        when(friendShipRepository.findAllRequestByUserAndStatus(any(), eq(FriendStatus.PENDING), eq(pageable)))
+                .thenReturn(friendShipPage);
+
+        when(friendshipMapper.toFriendship(any(), any())).thenReturn(new FriendshipResponse());
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = friendShipService.friendRequestListByUser(authentication, page, size);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = response.getBody().getData();
+        assertNotNull(responseBody);
+
+        List<FriendshipResponse> friends = (List<FriendshipResponse>) responseBody.get("friends");
+        assertEquals(1, friends.size());  // We expect two pending requests
+    }
+
+    @Test
+    void testFriendRequestSentListByUser_Success() throws Exception {
+        int page = 0;
+        int size = 5;
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createAt").descending());
+
+        mockAuthenticationAndUser(sender);
+        friendShip.setStatus(FriendStatus.PENDING);
+        List<FriendShip> pendingFriendShips = List.of(friendShip);
+
+        Page<FriendShip> friendShipPage = new PageImpl<>(pendingFriendShips, pageable, pendingFriendShips.size());
+        when(friendShipRepository.findAllSenRequestByUserAndStatus(any(), eq(FriendStatus.PENDING), eq(pageable)))
+                .thenReturn(friendShipPage);
+
+        when(friendshipMapper.toFriendship(any(), any())).thenReturn(new FriendshipResponse());
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = friendShipService.friendRequestSentListByUser(authentication, page, size);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = response.getBody().getData();
+        assertNotNull(responseBody);
+
+        List<FriendshipResponse> friends = (List<FriendshipResponse>) responseBody.get("friends");
+        assertEquals(1, friends.size());  // We expect two pending requests
+    }
+
 
     @Test
     void sendFriendRequest_Success() {

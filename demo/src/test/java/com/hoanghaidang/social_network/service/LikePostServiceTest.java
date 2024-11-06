@@ -13,15 +13,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class LikePostServiceTest {
@@ -37,6 +40,8 @@ public class LikePostServiceTest {
     private UserRepository userRepository;
     private User user;
     private Post post;
+    @Mock
+    private FriendShipRepository friendShipRepository;
 
     @Mock
     private LikeMapper likeMapper;
@@ -54,6 +59,27 @@ public class LikePostServiceTest {
     }
 
     @Test
+    void testGetLikePostList_Success() {
+        mockAuthenticationAndUser(user);
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("createAt").descending());
+
+        LikePost likePost = LikePost.builder().id(1L).post(post).user(user).build();
+        Page<LikePost> likePostPage = new PageImpl<>(List.of(likePost), pageable, 1);
+        LikePostResponse likePostResponse = new LikePostResponse();
+
+        when(likePostRepository.findLikePostByUser(user, pageable)).thenReturn(likePostPage);
+        when(likeMapper.toPostResponse(any(LikePost.class))).thenReturn(likePostResponse);
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = likePostService.getLikePostList(authentication, 0, 5);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        Map<String, Object> responseData = response.getBody().getData();
+        assertEquals(List.of(likePostResponse), responseData.get("likePosts"));
+    }
+
+
+    @Test
     void testLikePost_Success() {
         LikePost likePost = LikePost.builder().post(post).id(1L).build();
         ApiResponse<LikePostResponse> apiResponse = ApiResponse.<LikePostResponse>builder()
@@ -61,6 +87,7 @@ public class LikePostServiceTest {
                 .data(likeMapper.toPostResponse(likePost))
                 .build();
 
+        post.setUser(user);
         mockAuthenticationAndUser(user);
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
 
@@ -71,6 +98,35 @@ public class LikePostServiceTest {
         assertEquals(apiResponse.getMessage(), Objects.requireNonNull(response.getBody()).getMessage());
         verify(likePostRepository, times(1)).save(any(LikePost.class));
     }
+
+    @Test
+    void testLikePost_FailAccessDenied() {
+        post.setPostStatus(PostStatus.PRIVATE);
+        post.setUser(User.builder().id(2L).build());
+        mockAuthenticationAndUser(user);
+
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> likePostService.likePost(authentication, post.getId()));
+
+        assertEquals("You do not have access!", exception.getMessage());
+    }
+
+    @Test
+    void testLikePost_FailStatusFriends_Only() {
+        User other = User.builder().id(2L).build();
+        post.setPostStatus(PostStatus.FRIENDS_ONLY);
+        post.setUser(other);
+        mockAuthenticationAndUser(user);
+
+        when(friendShipRepository.findByUser1AndUser2(other, user)).thenThrow(new AccessDeniedException("You do not have access!"));
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> likePostService.likePost(authentication, post.getId()));
+
+        assertEquals("You do not have access!", exception.getMessage());
+    }
+
 
     @Test
     void testLikePost_FailNotFoundPost() {
@@ -87,6 +143,7 @@ public class LikePostServiceTest {
     void testLikePost_FailLikeIsDuplicate() {
         LikePost like = LikePost.builder().user(user).post(post).build();
 
+        post.setUser(user);
         mockAuthenticationAndUser(user);
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
         when(likePostRepository.findByUserIdAndPostId(user.getId(), post.getId())).thenReturn(like);

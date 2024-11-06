@@ -7,6 +7,7 @@ import com.hoanghaidang.social_network.dto.response.ApiResponse;
 import com.hoanghaidang.social_network.dto.response.ForgetPasswordResponse;
 import com.hoanghaidang.social_network.dto.response.JwtResponse;
 import com.hoanghaidang.social_network.dto.response.UserResponse;
+import com.hoanghaidang.social_network.entity.User;
 import com.hoanghaidang.social_network.enums.GenderEnum;
 import com.hoanghaidang.social_network.service.impl.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,26 @@ public class UserControllerTest {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
         objectMapper = new ObjectMapper();
+    }
+
+    @Test
+    void testGetUserById_Success() throws Exception {
+        User user = User.builder()
+                .id(1L)
+                .email("a@gmail.com")
+                .build();
+
+        ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                .data(UserResponse.builder().id(1L).build())
+                .build();
+
+        when(userService.getUserById(any())).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/user/profile/{userId}",user.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id", is(1)));
     }
 
     @Test

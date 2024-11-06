@@ -25,8 +25,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -68,9 +67,8 @@ public class PostControllerTest {
 
     @Test
     void testTimeLine_Success() throws Exception {
-        String email = "user@example.com";
         int page = 0;
-        int size = 10;
+        int size = 5;
 
         List<Post> posts = new ArrayList<>();
         posts.add(new Post());
@@ -88,6 +86,24 @@ public class PostControllerTest {
         when(postService.timeline(authentication, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
 
         mockMvc.perform(get("/api/post/timeline")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetPostById_Success() throws Exception {
+        Post post = Post.builder()
+                .id(1L)
+                .build();
+
+        ApiResponse<PostResponse> apiResponse = ApiResponse.<PostResponse>builder()
+                .data(postResponse)
+                .build();
+
+        when(postService.getPostById(authentication,post.getId())).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/post/post_detail/{postId}",post.getId())
                         .principal(authentication)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

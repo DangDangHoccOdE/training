@@ -2,11 +2,9 @@ package com.hoanghaidang.social_network.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hoanghaidang.social_network.dto.response.ApiResponse;
-import com.hoanghaidang.social_network.dto.response.FriendshipResponse;
 
 import static org.mockito.Mockito.doReturn;
 
-import com.hoanghaidang.social_network.enums.FriendStatus;
 import com.hoanghaidang.social_network.service.impl.FriendShipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +16,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -39,13 +41,70 @@ public class FriendshipControllerTest {
 
     private ObjectMapper objectMapper;
     private MockMvc mockMvc;
-    private long receiverId= 1;
+    private final long receiverId= 1;
 
     @BeforeEach
     void setup(){
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(friendshipController).build();
         objectMapper = new ObjectMapper();
+    }
+
+    @Test
+    void testFriendListByUser_Success() throws Exception {
+        int page = 0;
+        int size = 5;
+
+        Map<String, Object> responseMap = new HashMap<>();
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(responseMap)
+                .build();
+
+        when(friendShipService.friendListByUser(authentication, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/friend_ship/friend_list")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testFriendRequestListByUser_Success() throws Exception {
+        int page = 0;
+        int size = 5;
+
+        Map<String, Object> responseMap = new HashMap<>();
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(responseMap)
+                .build();
+
+        when(friendShipService.friendRequestListByUser(authentication, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/friend_ship/friend_request_list")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testFriendRequestSentListByUser_Success() throws Exception {
+        int page = 0;
+        int size = 5;
+
+        Map<String, Object> responseMap = new HashMap<>();
+
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.<Map<String,Object>>builder()
+                .data(responseMap)
+                .build();
+
+        when(friendShipService.friendRequestSentListByUser(authentication, page, size)).thenReturn(ResponseEntity.ok(apiResponse));
+
+        mockMvc.perform(get("/api/friend_ship/friend_request_sent_list")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
