@@ -62,13 +62,13 @@ public class LikeController {
     }
 
     @Operation(summary = "Unlike comment", description = "Unlike comment")
-    @DeleteMapping("/unlikeComment/{commentId}")
+    @DeleteMapping("/unlike_comment/{commentId}")
     public ResponseEntity<ApiResponse<Void>> unlikeComment(@PathVariable("commentId") long id, Authentication authentication){
         return iLikeCommentService.unlike(authentication,id);
     }
 
     @Operation(summary = "Unlike post", description = "Unlike post")
-    @DeleteMapping("/unlikePost/{postId}")
+    @DeleteMapping("/unlike_post/{postId}")
     public ResponseEntity<ApiResponse<Void>> unlikePost(@PathVariable("postId") long id, Authentication authentication){
         return iLikePostService.unlike(authentication,id);
     }

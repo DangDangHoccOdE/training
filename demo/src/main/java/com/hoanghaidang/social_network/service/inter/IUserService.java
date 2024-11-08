@@ -9,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface IUserService {
     ResponseEntity<ApiResponse<UserResponse>> getUserById(Long userId);
+    ResponseEntity<ApiResponse<List<UserResponse>>> getAllUser(int size, int page);
     ResponseEntity<ApiResponse<Void>> sendEmailActive(UserRequestDto userRequestDto);
     ResponseEntity<ApiResponse<JwtResponse>> refreshToken(Authentication authentication,String refreshToken);
     ResponseEntity<ApiResponse<Void>> registerUser(RegistrationDto registrationDto) throws Exception;

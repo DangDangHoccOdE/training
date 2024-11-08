@@ -144,25 +144,36 @@ public class FriendShipService implements IFriendShipService {
 
         Optional<FriendShip> friendShip1 = friendShipRepository.findByUser1AndUser2(sender, receiver);
         Optional<FriendShip> friendShip2 = friendShipRepository.findByUser1AndUser2(receiver, sender);
-        if ((friendShip1.isPresent() && friendShip1.get().getStatus().equals(FriendStatus.PENDING)) ||
-                (friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.PENDING))) {
-            throw new CustomException("Send duplicate invitations!", HttpStatus.BAD_REQUEST);
+
+        if ((friendShip1.isPresent() && friendShip1.get().getStatus().equals(FriendStatus.ACCEPTED)) ||
+                (friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.ACCEPTED))) {
+            throw new CustomException("Invitation already accepted!", HttpStatus.BAD_REQUEST);
         }
 
         if(friendShip1.isPresent() && friendShip1.get().getStatus().equals(FriendStatus.DECLINED)) {
             friendShipRepository.delete(friendShip1.get());
-        }else if(friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.DECLINED)){
+        }else if(friendShip2.isPresent() && friendShip2.get().getStatus().equals(FriendStatus.DECLINED) ) {
             friendShipRepository.delete(friendShip2.get());
         }
-        FriendShip friendship = new FriendShip();
-        friendship.setUser1(sender);
-        friendship.setUser2(receiver);
-        friendship.setCreateAt(LocalDateTime.now());
-        friendship.setStatus(FriendStatus.PENDING);
-        friendShipRepository.save(friendship);
 
+        String message = "";
+        if(friendShip2.isPresent() && friendShip1.isEmpty()){
+            friendShip2.get().setStatus(FriendStatus.ACCEPTED);
+            friendShipRepository.save(friendShip2.get());
+            message = "Add friend is completed";
+
+        }else {
+            FriendShip friendship = new FriendShip();
+            friendship.setUser1(sender);
+            friendship.setUser2(receiver);
+            friendship.setCreateAt(LocalDateTime.now());
+            friendship.setStatus(FriendStatus.PENDING);
+            friendShipRepository.save(friendship);
+
+            message = "Send add friend is completed";
+        }
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                .message("Send add friend is completed")
+                .message(message)
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -215,7 +226,7 @@ public class FriendShipService implements IFriendShipService {
 
         FriendShip friendShip = findFriendship(auth, receiver);
 
-        if (!FriendStatus.ACCEPTED.equals(friendShip.getStatus())) {
+        if (!FriendStatus.ACCEPTED.equals(friendShip.getStatus()) && !FriendStatus.PENDING.equals(friendShip.getStatus())) {
             throw new CustomException("Operation failed, Cannot unfriend", HttpStatus.BAD_REQUEST);
         }
 

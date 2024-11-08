@@ -91,7 +91,7 @@ public class LikePostControllerTest {
 
         when(likePostService.unlike(any(),anyLong())).thenReturn(ResponseEntity.ok(apiResponse));
 
-        mockMvc.perform(delete("/api/like/unlikePost/{postId}",postId)
+        mockMvc.perform(delete("/api/like/unlike_post/{postId}",postId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(authentication))
                 .andExpect(status().isOk())

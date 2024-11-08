@@ -10,7 +10,7 @@ public class Endpoints {
             "/api/user/validate_otp",
             "/v3/api-docs/**",
             "/swagger-ui/**", "/swagger-ui.html",
-            "/api/user/sendEmailActive"
+            "/api/user/send_email_active"
     };
 
     public static final String[] PUBLIC_GET_ENDPOINTS={
@@ -55,13 +55,14 @@ public class Endpoints {
             "/api/like/like_post_list",
             "/api/like/like_comment_list",
             "/api/user/profile/*",
+            "/api/user/get_all_user"
     };
 
     public static final String[] USER_DELETE_ENDPOINTS={
             "/api/friend_ship/delete",
             "/api/post/delete/*",
             "/api/comment/delete/*",
-            "/api/like/unlikePost/*",
-            "/api/like/unlikeComment/*",
+            "/api/like/unlike_post/*",
+            "/api/like/unlike_comment/*",
     };
 }

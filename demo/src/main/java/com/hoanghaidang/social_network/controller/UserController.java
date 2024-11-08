@@ -15,6 +15,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -24,6 +26,14 @@ import java.io.IOException;
 public class UserController {
     IUserService iUserService;
     UserService userService;
+
+    @Operation(summary = "Time line", description = "Time line")
+    @GetMapping("/get_all_user")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> timeline(@RequestParam(defaultValue = "0") int page,
+                                                      @RequestParam(defaultValue = "5") int size
+    ) {
+        return userService.getAllUser(page,size);
+    }
 
     @Operation(summary = "User Info",description = "User Info")
     @GetMapping("/profile/{userId}")
@@ -38,7 +48,7 @@ public class UserController {
     }
 
     @Operation(summary = "Send email active",description = "Send email active")
-    @PostMapping("/sendEmailActive")
+    @PostMapping("/send_email_active")
     public ResponseEntity<ApiResponse<Void>> sendEmailActive(@Validated @RequestBody UserRequestDto userRequestDto){
         return iUserService.sendEmailActive(userRequestDto);
     }

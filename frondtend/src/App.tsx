@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import ActivatedAccount from './pages/ActivatedAccount';
 import SendActiveAccount from './pages/SendActiveAccount';
+import {CssBaseline} from "@mui/material";
 
 const MyRoutes = () => {
   return(
@@ -36,7 +37,9 @@ const MyRoutes = () => {
 function App() {
   return (
    <BrowserRouter>
-      <MyRoutes/>
+       <CssBaseline>
+            <MyRoutes/>
+       </CssBaseline>
    </BrowserRouter>
   );
 }
