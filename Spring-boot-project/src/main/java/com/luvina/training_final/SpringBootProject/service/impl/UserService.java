@@ -47,6 +47,11 @@ public class UserService implements IUserService {
    StringRedisTemplate stringRedisTemplate;
 
     @Override
+    public ResponseEntity<?> getAllUser() throws Exception {
+        return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<?> registerUser(RegistrationDto registrationDto){
         Optional<Account> account = accountRepository.findAccountByEmail(registrationDto.getAccount().getEmail());

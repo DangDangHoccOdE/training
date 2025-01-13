@@ -6,6 +6,7 @@ import com.luvina.training_final.SpringBootProject.dto.UserDto;
 import org.springframework.http.ResponseEntity;
 
 public interface IUserService {
+    ResponseEntity<?> getAllUser() throws Exception;
     ResponseEntity<?> registerUser(RegistrationDto registrationDto) throws Exception;
     ResponseEntity<?> activeAccount(String email);
     ResponseEntity<?> login(AccountDto accountDto);

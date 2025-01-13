@@ -11,7 +11,7 @@ public class Endpoints {
 
     public static final String[] PUBLIC_GET_ENDPOINTS={
             "/v3/api-docs/",
-            "/swagger-ui/**", "/swagger-ui.html","/monitoring"
+            "/swagger-ui/**", "/swagger-ui.html","/monitoring","/user/get_all"
     };
 
 

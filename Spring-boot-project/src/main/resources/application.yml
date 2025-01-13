@@ -10,6 +10,9 @@ spring:
             ddl-auto: update
         open-in-view: true
         show-sql: true
+    cache:
+        jcache:
+            config: classpath:ehcache.xml
     mail:
         host: smtp.gmail.com
         password: rnsmddbxngmybmat
@@ -21,7 +24,8 @@ spring:
                     starttls:
                         enable: true
         username: danghoangtest1@gmail.com
-
+    main:
+        allow-bean-definition-overriding: true
     data:
         redis:
             host: localhost
@@ -39,6 +43,9 @@ javamelody:
         allowed-ips: 127.0.0.1
         disabled-users: admin
         no-database: false
-        storage-directory: /var/log/javamelody
-    cache-monitoring-enabled: true
+        storage-directory: /path/to/store/data
+        log: true
+        cache-monitoring-enabled: true
+
+
 

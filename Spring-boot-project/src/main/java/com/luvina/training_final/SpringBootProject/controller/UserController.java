@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     private IUserService iUserService;
+
+    @GetMapping("/get_all")
+    public ResponseEntity<?> getAllUser() throws Exception {
+        return iUserService.getAllUser();
+    }
+
     @PostMapping("/forget_password/{id}")
     public ResponseEntity<?> forgetPassword(@PathVariable long id){
         return iUserService.forgetPassword(id);
