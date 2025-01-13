@@ -1,8 +1,8 @@
 import { Box, Button, Modal, TextField, Typography } from "@mui/material";
-import { useForm, Controller } from "react-hook-form";
+import {useForm, Controller, useWatch} from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate} from "react-router-dom";
@@ -25,10 +25,21 @@ const OtpModal: React.FC<OtpProps> = ({ open, onClose }) => {
         handleSubmit,
         control,
         reset,
-        formState: { errors },
+        formState: { errors }
     } = useForm<{ otp: string }>({
         resolver: yupResolver(otpSchema)
     });
+
+    const otpValue = useWatch({
+        control,
+        name: "otp"
+    });
+
+    useEffect(() => {
+        if (otpValue) {
+            setOtpNotice("");
+        }
+    }, [otpValue]);
 
     const onSubmit=async(data:{otp:string})=>{
         const otp:string = data?.otp;

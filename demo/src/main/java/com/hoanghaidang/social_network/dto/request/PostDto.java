@@ -15,7 +15,7 @@ public class PostDto {
     @Size(max = 255,message = "Title must not exceed 255 characters")
     private String title;
 
-    @Size(max = 255,message = "Content must not exceed 255 characters")
+    @Size(max = 10000,message = "Title must not exceed 2500 words")
     private String content;
 
     private PostStatus postStatus;

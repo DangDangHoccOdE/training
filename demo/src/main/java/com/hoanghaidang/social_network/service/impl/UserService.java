@@ -19,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,6 +39,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -55,6 +59,26 @@ public class UserService implements IUserService {
    LikePostRepository likePostRepository;
     UserMapper userMapper;
     private final LikeCommentRepository likeCommentRepository;
+
+    @Override
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUser(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> userPage = userRepository.findAll(pageable);
+        List<User> users = userPage.getContent();
+
+        List<UserResponse> userResponses = users.stream()
+                .map(userMapper::toUserResponse)
+                .collect(Collectors.toList());
+
+        // Tạo đối tượng ApiResponse
+        ApiResponse<List<UserResponse>> response = ApiResponse.<List<UserResponse>>builder()
+                .data(userResponses)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 
     @Override
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(Long userId) {

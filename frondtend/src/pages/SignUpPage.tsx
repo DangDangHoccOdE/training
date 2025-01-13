@@ -328,7 +328,6 @@ const SignUpPage=()=>{
                                 <Info size={16}/>
                             </IconButton>
                         </Typography>
-                        {/* <FormControl error={!!noticeGender} variant="standard"> */}
                             <RadioGroup
                                 row
                                 name="gender"
@@ -340,7 +339,7 @@ const SignUpPage=()=>{
                                     control={<Radio size="small"/>}
                                     sx={{
                                         flex:1,
-                                        border:'1px solid #ccc',
+                                        border: noticeGender ? '1px solid red' : '1px solid #ccc',
                                         borderRadius:1,
                                         m:0,
                                         mr:2
@@ -351,22 +350,20 @@ const SignUpPage=()=>{
                                     label="Nam"
                                     sx={{
                                         flex:1,
-                                    border:'1px solid #ccc',
+                                        border: noticeGender ? '1px solid red' : '1px solid #ccc',
                                         borderRadius:1,
                                         m:0,
                                         mr:0
                                     }}
                                     />
                             </RadioGroup>
-                        {/* </FormControl> */}
-                        {noticeGender && 
+                        {noticeGender &&
                             <Typography color="error" sx={{mt:1,fontSize:'0.875rem'}}>
                                 {noticeGender}
                             </Typography>
                         }           
                     </Box>
 
-                   
                     <TextField fullWidth
                         label='Nhập email'
                         name='email'

@@ -224,7 +224,7 @@ public class UserControllerTest {
 
         when(userService.sendEmailActive(any())).thenReturn(ResponseEntity.ok(apiResponse));
 
-        mockMvc.perform(post("/api/user/sendEmailActive")
+        mockMvc.perform(post("/api/user/send_email_active")
                         .principal(authentication)
                         .content(objectMapper.writeValueAsString(userRequestDto))
                         .contentType(MediaType.APPLICATION_JSON))
